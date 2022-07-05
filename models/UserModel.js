@@ -1,0 +1,33 @@
+const mongoose = require('mongoose');
+
+const UserScehema = new mongoose.Schema(
+  {
+    username: {
+      required: true,
+      type: String,
+    },
+    email: {
+      required: true,
+      type: String,
+    },
+    googleId: {
+      required: true,
+      type: String,
+    },
+    userType: {
+      required: true,
+      type: String,
+    },
+    privileges: {
+      required: true,
+      type: [String],
+    },
+    image: {
+      required: true,
+      type: String,
+    },
+  },
+  { timestamps: true },
+);
+
+module.exports = mongoose.model('User', UserScehema);

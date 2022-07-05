@@ -1,0 +1,33 @@
+{
+  "name": "enormoqb-server",
+  "version": "2.0.0",
+  "scripts": {
+    "start": "node ./bin/www",
+    "dev": "nodemon ./bin/www",
+    "docker:prod": "docker-compose -f docker-compose.yml -f docker-compose.prod.yml up",
+    "docker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up",
+    "lint": "eslint --fix --config .eslintrc.json \"**/*.js\""
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1165.0",
+    "bull": "^4.8.4",
+    "connect-mongodb-session": "^3.1.1",
+    "cors": "^2.8.5",
+    "debug": "~2.6.9",
+    "dotenv": "^8.2.0",
+    "express": "~4.16.0",
+    "express-session": "^1.17.2",
+    "moment": "^2.24.0",
+    "mongoose": "^5.7.6",
+    "morgan": "~1.9.0",
+    "passport": "^0.5.2",
+    "passport-google-oauth20": "^2.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.19.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-node": "^11.1.0",
+    "husky": "^8.0.1",
+    "nodemon": "^1.19.4"
+  }
+}
