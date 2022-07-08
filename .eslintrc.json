@@ -20,6 +20,7 @@
     "consistent-return": "off",
     "no-console": "off",
     "no-underscore-dangle": "off",
-    "no-process-exit": "off"
+    "no-process-exit": "off",
+    "operator-linebreak":"off"
   }
 }

@@ -1,39 +1,32 @@
 const express = require('express');
 require('dotenv').config();
-const mongoose = require('mongoose');
 const cors = require('cors');
 const session = require('express-session');
+const mongoose = require('mongoose');
 const MongoDBStore = require('connect-mongodb-session')(session);
 const passport = require('passport');
 const logger = require('morgan');
 const indexRouter = require('./routes/index');
 const apiRouter = require('./routes/api');
 const authRouter = require('./auth');
+const initializeAdmin = require('./admin');
 const apiResponse = require('./helpers/apiResponse');
 
 const app = express();
 
-const { MONGODB_URL } = process.env;
 mongoose
-  .connect(MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(process.env.MONGODB_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => {
     console.log('Connected to MongoDB');
-    console.log('App is running ... \n');
-    console.log('Press CTRL + C to stop the process. \n');
-  })
-  .catch((err) => {
-    console.error('App starting error:', err.message);
-    process.exit(1);
   });
-const db = mongoose.connection;
 
 const store = new MongoDBStore({
-  uri: MONGODB_URL,
+  uri: process.env.MONGODB_URL,
   collection: 'sessions',
 });
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
 app.use(
   cors({
@@ -44,27 +37,28 @@ app.use(
 
 app.set('trust proxy', 1);
 
-const sessionConfig = process.env.NODE_ENV === 'development'
-  ? {
-    secret: process.env.SECRET,
-    resave: true,
-    saveUninitialized: true,
-    store,
-    cookie: {
-      maxAge: 1000 * 60 * 60 * 24 * 7, // One Week
-    },
-  }
-  : {
-    secret: process.env.SECRET,
-    resave: true,
-    saveUninitialized: true,
-    store,
-    cookie: {
-      sameSite: 'none',
-      secure: true,
-      maxAge: 1000 * 60 * 60 * 24 * 7, // One Week
-    },
-  };
+const sessionConfig =
+  process.env.NODE_ENV === 'development'
+    ? {
+      secret: process.env.SECRET,
+      resave: true,
+      saveUninitialized: true,
+      store,
+      cookie: {
+        maxAge: 1000 * 60 * 60 * 24 * 7, // One Week
+      },
+    }
+    : {
+      secret: process.env.SECRET,
+      resave: true,
+      saveUninitialized: true,
+      store,
+      cookie: {
+        sameSite: 'none',
+        secure: true,
+        maxAge: 1000 * 60 * 60 * 24 * 7, // One Week
+      },
+    };
 
 app.use(session(sessionConfig));
 
@@ -73,8 +67,13 @@ app.use(passport.session());
 
 app.use(logger('dev'));
 
-// Route Prefixes
+const adminBroRouter = initializeAdmin(sessionConfig);
+app.use('/admin', adminBroRouter);
 
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+
+// Route Prefixes
 app.use('/', indexRouter);
 app.use('/auth/', authRouter);
 app.use('/api/', apiRouter);

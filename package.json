@@ -9,6 +9,9 @@
     "lint": "eslint --fix --config .eslintrc.json \"**/*.js\""
   },
   "dependencies": {
+    "admin-bro": "^4.0.1",
+    "admin-bro-expressjs": "^2.1.1",
+    "admin-bro-mongoose": "^0.5.2",
     "aws-sdk": "^2.1165.0",
     "bull": "^4.8.4",
     "connect-mongodb-session": "^3.1.1",
@@ -16,6 +19,7 @@
     "debug": "~2.6.9",
     "dotenv": "^8.2.0",
     "express": "~4.16.0",
+    "express-formidable": "^1.2.0",
     "express-session": "^1.17.2",
     "moment": "^2.24.0",
     "mongoose": "^5.7.6",
