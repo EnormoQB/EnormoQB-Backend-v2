@@ -6,7 +6,7 @@ const colors = {
   primary40: '#b2b4b9',
   primary20: '#e7e8ea',
   // accent
-  accent: '#38CAF1',
+  accent: '#1b1c1e',
   love: '#e6282b',
   // grey
   grey100: '#0e0e11',

@@ -4,11 +4,12 @@ AdminBro.registerAdapter(require('admin-bro-mongoose'));
 const User = require('../models/UserModel');
 const Question = require('../models/QuestionModel');
 const QuestionPaper = require('../models/QuestionPaperModel');
+const PendingInvites = require('../models/PendingInvites');
 const theme = require('./theme');
 
 const initializeAdmin = (sessionConfig) => {
   const adminBro = new AdminBro({
-    resources: [User, Question, QuestionPaper],
+    resources: [User, Question, QuestionPaper, PendingInvites],
     rootPath: '/admin',
     loginPath: '/admin/login',
     logoutPath: '/admin/logout',
@@ -16,7 +17,13 @@ const initializeAdmin = (sessionConfig) => {
       companyName: 'EnormoQB',
       theme,
       softwareBrothers: false,
-      logo: 'https://raw.githubusercontent.com/EnormoQB/EnormoQB-Client/ef2ae67a3d0d63039370549ca9047684c8613c1f/src/assets/Logo.svg',
+      logo: '/logo.svg',
+    },
+    pages: {
+      'Create Admin': {
+        label: 'Create Admin',
+        component: AdminBro.bundle('./createAdminPage'),
+      },
     },
   });
 

@@ -9,7 +9,7 @@
     "lint": "eslint --fix --config .eslintrc.json \"**/*.js\""
   },
   "lint-staged": {
-    "*": "eslint --fix"
+    "*.js": "eslint --fix"
   },
   "dependencies": {
     "admin-bro": "^4.0.1",

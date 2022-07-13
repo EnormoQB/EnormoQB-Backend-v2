@@ -4,8 +4,8 @@ const express = require('express');
 const router = express.Router();
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('../models/UserModel');
+const PendingInvites = require('../models/PendingInvites');
 
-// subject to change, User model and login strategy both
 passport.use(
   new GoogleStrategy(
     {
@@ -13,7 +13,7 @@ passport.use(
       clientSecret: `${process.env.GOOGLE_CLIENT_SECRET}`,
       callbackURL: '/auth/google/callback',
     },
-    (profile, cb) => {
+    (_, __, profile, cb) => {
       try {
         User.findOne({ googleId: profile.id }, async (err, doc) => {
           if (err) {
@@ -21,6 +21,16 @@ passport.use(
           }
 
           if (!doc) {
+            const email =
+              profile.emails && profile.emails[0].value
+                ? profile.emails[0].value
+                : '';
+            const invite = await PendingInvites.findOne({
+              email,
+            }).exec();
+
+            const userType = invite ? 'admin' : 'member';
+
             const newUser = new User({
               googleId: profile.id,
               username: profile.displayName || '',
@@ -28,7 +38,7 @@ passport.use(
                 ? profile.emails[0].value
                 : ''
               ).toLowerCase(),
-              userType: 'member',
+              userType,
               privileges: [],
               image:
                 profile.photos && profile.photos[0].value
@@ -36,10 +46,22 @@ passport.use(
                   : '',
             });
 
+            if (invite) {
+              PendingInvites.deleteOne(
+                {
+                  email,
+                },
+                () => {
+                  console.log(`Deleted Invitation for ${email}`);
+                },
+              );
+            }
+
             await newUser.save();
             cb(null, newUser);
+          } else {
+            cb(null, doc);
           }
-          cb(null, doc);
         });
       } catch (e) {
         console.log(e);
