@@ -88,7 +88,7 @@ router.get(
     session: true,
   }),
   (req, res) => {
-    res.redirect(process.env.CLIENT_URL);
+    res.redirect(`${process.env.CLIENT_URL}/dashboard`);
   },
 );
 
