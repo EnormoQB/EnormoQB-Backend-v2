@@ -8,12 +8,14 @@
     "docker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up",
     "lint": "eslint --fix --config .eslintrc.json \"**/*.js\""
   },
+  "lint-staged": {
+    "*.js": "eslint --fix"
+  },
   "dependencies": {
     "admin-bro": "^4.0.1",
     "admin-bro-expressjs": "^2.1.1",
     "admin-bro-mongoose": "^0.5.2",
     "aws-sdk": "^2.1165.0",
-    "bull": "^4.8.4",
     "connect-mongodb-session": "^3.1.1",
     "cors": "^2.8.5",
     "debug": "~2.6.9",
@@ -32,6 +34,7 @@
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-node": "^11.1.0",
     "husky": "^8.0.1",
+    "lint-staged": "^13.0.3",
     "nodemon": "^1.19.4"
   }
 }
