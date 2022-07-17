@@ -55,6 +55,18 @@ const QuestionList = async (req, res, next) => {
       },
     });
   }
+  // Filter according to topics
+  if (req.query.topics && req.query.topics != null) {
+    await query.push({
+      $redact: {
+        $cond: {
+          if: { $gt: [{ $size: { $setIntersection: ['$topic', req.query.topics] } }, 0] },
+          then: '$$DESCEND',
+          else: '$$PRUNE',
+        },
+      },
+    });
+  }
   // Pagination
   const total = (await Question.aggregate(query)).length;
   const page = req.query.page ? parseInt(req.query.page, 10) : 1;
@@ -260,6 +272,32 @@ const GeneratePaper = async (req, res, next) => {
   doc.end();
   res.send(ans);
 };
+
+const SwitchQuestion = async (req, res, next) => {
+  const { id } = req.query;
+  const ans = await Question.findById(id);
+  const query = [];
+  await query.push({
+    $match: {
+      standard: ans.standard,
+      subject: { $regex: ans.subject, $options: 'i' },
+      status: { $regex: 'approved', $options: 'i' },
+      difficulty: { $regex: ans.difficulty, $options: 'i' },
+      topic: { $in: ans.topic },
+    },
+  });
+  const items = await Question.aggregate(query);
+  if (items.length === 1) {
+    res.send(ans);
+  } else {
+    let result;
+    do {
+      result = items[Math.floor(Math.random() * items.length)];
+    // eslint-disable-next-line eqeqeq
+    } while (result._id == id);
+    await res.send(result);
+  }
+};
 module.exports = {
-  Test, QuestionList, AddQuestion, UpdateQuestion, GeneratePaper,
+  Test, QuestionList, AddQuestion, UpdateQuestion, GeneratePaper, SwitchQuestion,
 };

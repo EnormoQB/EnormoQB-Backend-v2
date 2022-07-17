@@ -8,5 +8,6 @@ router.get('/list', QuestionController.QuestionList);
 router.post('/add', QuestionController.AddQuestion);
 router.patch('/update/:id', QuestionController.UpdateQuestion);
 router.get('/generate', QuestionController.GeneratePaper);
+router.get('/switch', QuestionController.SwitchQuestion);
 
 module.exports = router;
