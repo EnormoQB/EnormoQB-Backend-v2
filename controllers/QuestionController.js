@@ -17,7 +17,7 @@ const QuestionList = async (req, res, next) => {
   });
   // Filter according to standard
   if (req.query.standard && req.query.standard != null) {
-    await query.push({
+    query.push({
       $match: {
         standard: req.query.standard,
       },
@@ -25,7 +25,7 @@ const QuestionList = async (req, res, next) => {
   }
   // Filter according to difficulty
   if (req.query.difficulty && req.query.difficulty != null) {
-    await query.push({
+    query.push({
       $match: {
         difficulty: { $regex: req.query.difficulty, $options: 'i' },
       },
@@ -33,7 +33,7 @@ const QuestionList = async (req, res, next) => {
   }
   // Filter according to subject
   if (req.query.subject && req.query.subject != null) {
-    await query.push({
+    query.push({
       $match: {
         subject: { $regex: req.query.subject, $options: 'i' },
       },
@@ -41,7 +41,7 @@ const QuestionList = async (req, res, next) => {
   }
   // Filter according to status
   if (req.query.status && req.query.status != null) {
-    await query.push({
+    query.push({
       $match: {
         status: { $regex: req.query.status, $options: 'i' },
       },
@@ -49,7 +49,7 @@ const QuestionList = async (req, res, next) => {
   }
   // Filter according to userId
   if (req.query.userId && req.query.userId != null) {
-    await query.push({
+    query.push({
       $match: {
         userId: { $regex: req.query.userId, $options: 'i' },
       },
@@ -57,13 +57,9 @@ const QuestionList = async (req, res, next) => {
   }
   // Filter according to topics
   if (req.query.topics && req.query.topics != null) {
-    await query.push({
-      $redact: {
-        $cond: {
-          if: { $gt: [{ $size: { $setIntersection: ['$topic', req.query.topics] } }, 0] },
-          then: '$$DESCEND',
-          else: '$$PRUNE',
-        },
+    query.push({
+      $match: {
+        topic: { $in: [req.query.topics] },
       },
     });
   }
@@ -140,43 +136,25 @@ const UpdateQuestion = async (req, res, next) => {
     });
 };
 const GeneratePaper = async (req, res, next) => {
-  //   const { standard, board, subject, numberOfQuestions, topics } = req.body;
-  //   const topicsList = topics.split(',');
-  //   const { easy, medium, hard } = numberOfQuestions;
   const query = [];
 
   if (req.query.subject && req.query.subject != null) {
     await query.push({
       $match: {
         subject: { $regex: req.query.subject, $options: 'i' },
+        standard: req.query.standard,
+        status: { $regex: 'approved', $options: 'i' },
+        difficulty: { $regex: 'easy', $options: 'i' },
       },
     });
   }
 
-  await query.push({
-    $match: {
-      standard: req.query.standard,
-    },
-  });
   // await query.push({
-  //     $match: {
-  //         'standard' : { $regex: req.query.standard, $options: 'i' },
-  //         },
+  //   $match: {
+  //     difficulty: { $regex: 'easy', $options: 'i' },
+  //   },
   // });
-  await query.push({
-    $match: {
-      status: { $regex: 'approved', $options: 'i' },
-    },
-  });
-
-  await query.push({
-    $match: {
-      difficulty: { $regex: 'easy', $options: 'i' },
-    },
-  });
-  // console.log(query);
   let items = await Question.aggregate(query);
-  // console.log(items);
   const ans = [];
 
   for (let i = 0; i < req.query.easy; i += 1) {
@@ -193,7 +171,6 @@ const GeneratePaper = async (req, res, next) => {
   });
 
   items = await Question.aggregate(query);
-  // console.log(items);
 
   for (let i = 0; i < req.query.medium; i += 1) {
     const random = Math.floor(Math.random() * items.length);
@@ -208,7 +185,6 @@ const GeneratePaper = async (req, res, next) => {
   });
 
   items = await Question.aggregate(query);
-  // console.log(items);
 
   for (let i = 0; i < req.query.hard; i += 1) {
     const random = Math.floor(Math.random() * items.length);
@@ -286,7 +262,9 @@ const SwitchQuestion = async (req, res, next) => {
       topic: { $in: ans.topic },
     },
   });
+
   const items = await Question.aggregate(query);
+
   if (items.length === 1) {
     res.send(ans);
   } else {
