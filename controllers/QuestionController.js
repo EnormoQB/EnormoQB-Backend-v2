@@ -264,6 +264,9 @@ const SwitchQuestion = async (req, res, next) => {
   });
 
   const items = await Question.aggregate(query);
+  if (items.length === 0) {
+    apiResponse.ErrorResponse(res, 'No data found');
+  }
 
   if (items.length === 1) {
     res.send(ans);
@@ -273,9 +276,19 @@ const SwitchQuestion = async (req, res, next) => {
       result = items[Math.floor(Math.random() * items.length)];
     // eslint-disable-next-line eqeqeq
     } while (result._id == id);
-    await res.send(result);
+    await apiResponse.successResponseWithData(res, 'Success', result);
   }
 };
+
+const Stats = async (req, res, next) => {
+  const total = await Question.countDocuments();
+  const approved = await Question.countDocuments({ status: 'approved', userId: req.query.userId });
+  const pending = await Question.countDocuments({ status: 'pending', userId: req.query.userId });
+  const rejected = await Question.countDocuments({ status: 'rejected', userId: req.query.userId });
+  await apiResponse.successResponseWithData(res, 'Success', {
+    total, approved, pending, rejected,
+  });
+};
 module.exports = {
-  Test, QuestionList, AddQuestion, UpdateQuestion, GeneratePaper, SwitchQuestion,
+  Test, QuestionList, AddQuestion, UpdateQuestion, GeneratePaper, SwitchQuestion, Stats,
 };
