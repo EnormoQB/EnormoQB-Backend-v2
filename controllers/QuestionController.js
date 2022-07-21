@@ -190,6 +190,9 @@ const GeneratePaper = async (req, res, next) => {
 };
 
 const GeneratePDF = async (req, res, next) => {
+  const {
+    standard, subject, board, pdfData,
+  } = req.body;
   const fonts = {
     Roboto: {
       normal: 'fonts/Roboto/Roboto-Regular.ttf',
@@ -198,17 +201,74 @@ const GeneratePDF = async (req, res, next) => {
       bolditalics: 'fonts/Roboto/Roboto-MediumItalic.ttf',
     },
   };
+  // const dd = {
+  //   content: [
+  //     'First paragraph',
+  //     'Another paragraph, this time a little bit longer to make sure,this line will ',
+  //   ],
+  // };
+  const indexing = ['A', 'B', 'C', 'D'];
+  const year = new Date().getFullYear();
   const dd = {
     content: [
-      'First paragraph',
-      'Another paragraph, this time a little bit longer to make sure, this line will be divided into at least two lines',
+      {
+        alignment: 'center',
+        text: `Question Paper (Term 1) ${year}-${year + 1}\n\n`,
+        style: 'header',
+      },
+      {
+        alignment: 'center',
+        columns: [
+          {
+            text: `Class - ${standard}`,
+          },
+          {
+            text: `Board - ${board}`,
+          },
+          {
+            text: `Subject - ${subject}`,
+          },
+          {
+            text: 'Time - 90mins',
+          },
+        ],
+      },
+      {
+        stack: [
+          {
+            text: 'General Instructions',
+          },
+          '1. The Question Paper contains three sections',
+          '2. The first section contains the general instructions',
+          '3. The second section contains the questions',
+          '4. The third section contains the answers',
+          'All Questions carry equal marks',
+          'There is no negative marking',
+        ],
+        style: 'superMargin',
+        italics: true,
+        margin: [0, 12, 2, 20],
+      },
+      pdfData.map((item, index) => ({
+        stack: [
+          {
+            text: `Q${index + 1}. ${item.question}`,
+            bold: true,
+            margin: [0, 0, 0, 10],
+          },
+          item.options.map((option, i) => ({
+            text: `${indexing[i]}. ${option}`,
+            margin: [0, 0, 0, 10],
+          })),
+        ],
+      })),
     ],
-
   };
   const pdfmake = new PdfMake(fonts);
   const doc = pdfmake.createPdfKitDocument(dd);
   doc.pipe(fs.createWriteStream('document.pdf'));
   doc.end();
+  res.send(pdfData);
 };
 
 const SwitchQuestion = async (req, res, next) => {
@@ -243,6 +303,7 @@ const SwitchQuestion = async (req, res, next) => {
 };
 
 const Stats = async (req, res, next) => {
+  console.log(req.query);
   const total = await Question.countDocuments();
   const approved = await Question.countDocuments({ status: 'approved', userId: req.query.userId });
   const pending = await Question.countDocuments({ status: 'pending', userId: req.query.userId });
