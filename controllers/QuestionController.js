@@ -94,25 +94,28 @@ const QuestionList = async (req, res, next) => {
 const AddQuestion = async (req, res, next) => {
   const {
     standard,
-    topic,
-    imageUrl,
-    answer,
+    topics,
+    // imageUrl,
     options,
     question,
     subject,
     difficulty,
     userId,
+    answerExplaination,
   } = req.body;
+  const answer = options.find((option) => option.isCorrect).value;
+  const finalOptions = options.map((option) => option.value);
   const newItem = new Question({
     question,
-    options,
+    options: finalOptions,
     answer,
     standard,
     subject,
-    topic,
-    imageUrl,
+    topic: topics,
+    // imageUrl,
     difficulty,
     userId,
+    answerExplaination,
   });
   await newItem
     .save()
@@ -275,7 +278,7 @@ const SwitchQuestion = async (req, res, next) => {
   const { id } = req.query;
   const ans = await Question.findById(id);
   const query = [];
-  await query.push({
+  query.push({
     $match: {
       standard: ans.standard,
       subject: { $regex: ans.subject, $options: 'i' },
