@@ -95,7 +95,6 @@ const AddQuestion = async (req, res, next) => {
   const {
     standard,
     topics,
-    // imageUrl,
     options,
     question,
     subject,
