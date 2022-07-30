@@ -94,25 +94,27 @@ const QuestionList = async (req, res, next) => {
 const AddQuestion = async (req, res, next) => {
   const {
     standard,
-    topic,
-    imageUrl,
-    answer,
+    topics,
     options,
     question,
     subject,
     difficulty,
     userId,
+    answerExplaination,
   } = req.body;
+  const answer = options.find((option) => option.isCorrect).value;
+  const finalOptions = options.map((option) => option.value);
   const newItem = new Question({
     question,
-    options,
+    options: finalOptions,
     answer,
     standard,
     subject,
-    topic,
-    imageUrl,
+    topic: topics,
+    // imageUrl,
     difficulty,
     userId,
+    answerExplaination,
   });
   await newItem
     .save()
@@ -135,11 +137,12 @@ const UpdateQuestion = async (req, res, next) => {
       return apiResponse.ErrorResponse(res, 'Error while updating Question');
     });
 };
+
 const GeneratePaper = async (req, res, next) => {
   const query = [];
 
   if (req.query.subject && req.query.subject != null) {
-    await query.push({
+    query.push({
       $match: {
         subject: { $regex: req.query.subject, $options: 'i' },
         standard: req.query.standard,
@@ -148,12 +151,6 @@ const GeneratePaper = async (req, res, next) => {
       },
     });
   }
-
-  // await query.push({
-  //   $match: {
-  //     difficulty: { $regex: 'easy', $options: 'i' },
-  //   },
-  // });
   let items = await Question.aggregate(query);
   const ans = [];
 
@@ -163,8 +160,8 @@ const GeneratePaper = async (req, res, next) => {
     items.splice(random, 1);
   }
 
-  await query.pop();
-  await query.push({
+  query.pop();
+  query.push({
     $match: {
       difficulty: { $regex: 'medium', $options: 'i' },
     },
@@ -177,8 +174,8 @@ const GeneratePaper = async (req, res, next) => {
     ans.push(items[random]);
     items.splice(random, 1);
   }
-  await query.pop();
-  await query.push({
+  query.pop();
+  query.push({
     $match: {
       difficulty: { $regex: 'hard', $options: 'i' },
     },
@@ -191,7 +188,13 @@ const GeneratePaper = async (req, res, next) => {
     ans.push(items[random]);
     items.splice(random, 1);
   }
-  // res.send(ans);
+  res.send(ans);
+};
+
+const GeneratePDF = async (req, res, next) => {
+  const {
+    standard, subject, board, pdfData,
+  } = req.body;
   const fonts = {
     Roboto: {
       normal: 'fonts/Roboto/Roboto-Regular.ttf',
@@ -200,60 +203,81 @@ const GeneratePaper = async (req, res, next) => {
       bolditalics: 'fonts/Roboto/Roboto-MediumItalic.ttf',
     },
   };
+  // const dd = {
+  //   content: [
+  //     'First paragraph',
+  //     'Another paragraph, this time a little bit longer to make sure,this line will ',
+  //   ],
+  // };
+  const indexing = ['A', 'B', 'C', 'D'];
+  const year = new Date().getFullYear();
   const dd = {
     content: [
       {
-        text: 'This is a header, using header style',
+        alignment: 'center',
+        text: `Question Paper (Term 1) ${year}-${year + 1}\n\n`,
         style: 'header',
       },
-      'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Confectum ponit legam, perferendis nomine miserum, animi. Moveat nesciunt triari naturam.\n\n',
       {
-        text: 'Subheader 1 - using subheader style',
-        style: 'subheader',
+        alignment: 'center',
+        columns: [
+          {
+            text: `Class - ${standard}`,
+          },
+          {
+            text: `Board - ${board}`,
+          },
+          {
+            text: `Subject - ${subject}`,
+          },
+          {
+            text: 'Time - 90mins',
+          },
+        ],
       },
-      'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Confectum ponit legam, perferendis nomine miserum, animi. Moveat nesciunt triari naturam posset, eveniunt specie deorsus efficiat sermone instituendarum fuisse veniat, eademque mutat debeo. Delectet plerique protervi diogenem dixerit logikh levius probabo adipiscuntur afficitur, factis magistra inprobitatem aliquo andriam obiecta, religionis, imitarentur studiis quam, clamat intereant vulgo admonitionem operis iudex stabilitas vacillare scriptum nixam, reperiri inveniri maestitiam istius eaque dissentias idcirco gravis, refert suscipiet recte sapiens oportet ipsam terentianus, perpauca sedatio aliena video.',
-      'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Confectum ponit legam, perferendis nomine miserum, animi. Moveat nesciunt triari naturam posset, eveniunt specie deorsus efficiat sermone instituendarum fuisse veniat, eademque mutat debeo. Delectet plerique protervi diogenem dixerit logikh levius probabo adipiscuntur afficitur, factis magistra inprobitatem aliquo andriam obiecta, religionis, imitarentur studiis quam, clamat intereant vulgo admonitionem operis iudex stabilitas vacillare scriptum nixam, reperiri inveniri maestitiam istius eaque dissentias idcirco gravis, refert suscipiet recte sapiens oportet ipsam terentianus, perpauca sedatio aliena video.',
-      'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Confectum ponit legam, perferendis nomine miserum, animi. Moveat nesciunt triari naturam posset, eveniunt specie deorsus efficiat sermone instituendarum fuisse veniat, eademque mutat debeo. Delectet plerique protervi diogenem dixerit logikh levius probabo adipiscuntur afficitur, factis magistra inprobitatem aliquo andriam obiecta, religionis, imitarentur studiis quam, clamat intereant vulgo admonitionem operis iudex stabilitas vacillare scriptum nixam, reperiri inveniri maestitiam istius eaque dissentias idcirco gravis, refert suscipiet recte sapiens oportet ipsam terentianus, perpauca sedatio aliena video.\n\n',
       {
-        text: 'Subheader 2 - using subheader style',
-        style: 'subheader',
-      },
-      'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Confectum ponit legam, perferendis nomine miserum, animi. Moveat nesciunt triari naturam posset, eveniunt specie deorsus efficiat sermone instituendarum fuisse veniat, eademque mutat debeo. Delectet plerique protervi diogenem dixerit logikh levius probabo adipiscuntur afficitur, factis magistra inprobitatem aliquo andriam obiecta, religionis, imitarentur studiis quam, clamat intereant vulgo admonitionem operis iudex stabilitas vacillare scriptum nixam, reperiri inveniri maestitiam istius eaque dissentias idcirco gravis, refert suscipiet recte sapiens oportet ipsam terentianus, perpauca sedatio aliena video.',
-      'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Confectum ponit legam, perferendis nomine miserum, animi. Moveat nesciunt triari naturam posset, eveniunt specie deorsus efficiat sermone instituendarum fuisse veniat, eademque mutat debeo. Delectet plerique protervi diogenem dixerit logikh levius probabo adipiscuntur afficitur, factis magistra inprobitatem aliquo andriam obiecta, religionis, imitarentur studiis quam, clamat intereant vulgo admonitionem operis iudex stabilitas vacillare scriptum nixam, reperiri inveniri maestitiam istius eaque dissentias idcirco gravis, refert suscipiet recte sapiens oportet ipsam terentianus, perpauca sedatio aliena video.\n\n',
-      {
-        text: 'It is possible to apply multiple styles, by passing an array. This paragraph uses two styles: quote and small. When multiple styles are provided, they are evaluated in the specified order which is important in case they define the same properties',
-        style: ['quote', 'small'],
-      },
-    ],
-    styles: {
-      header: {
-        fontSize: 18,
-        bold: true,
-      },
-      subheader: {
-        fontSize: 15,
-        bold: true,
-      },
-      quote: {
+        stack: [
+          {
+            text: 'General Instructions',
+          },
+          '1. The Question Paper contains three sections',
+          '2. The first section contains the general instructions',
+          '3. The second section contains the questions',
+          '4. The third section contains the answers',
+          'All Questions carry equal marks',
+          'There is no negative marking',
+        ],
+        style: 'superMargin',
         italics: true,
+        margin: [0, 12, 2, 20],
       },
-      small: {
-        fontSize: 8,
-      },
-    },
+      pdfData.map((item, index) => ({
+        stack: [
+          {
+            text: `Q${index + 1}. ${item.question}`,
+            bold: true,
+            margin: [0, 0, 0, 10],
+          },
+          item.options.map((option, i) => ({
+            text: `${indexing[i]}. ${option}`,
+            margin: [0, 0, 0, 10],
+          })),
+        ],
+      })),
+    ],
   };
   const pdfmake = new PdfMake(fonts);
   const doc = pdfmake.createPdfKitDocument(dd);
   doc.pipe(fs.createWriteStream('document.pdf'));
   doc.end();
-  res.send(ans);
+  res.send(pdfData);
 };
 
 const SwitchQuestion = async (req, res, next) => {
   const { id } = req.query;
   const ans = await Question.findById(id);
   const query = [];
-  await query.push({
+  query.push({
     $match: {
       standard: ans.standard,
       subject: { $regex: ans.subject, $options: 'i' },
@@ -281,14 +305,44 @@ const SwitchQuestion = async (req, res, next) => {
 };
 
 const Stats = async (req, res, next) => {
+  console.log(req.query);
   const total = await Question.countDocuments();
   const approved = await Question.countDocuments({ status: 'approved', userId: req.query.userId });
   const pending = await Question.countDocuments({ status: 'pending', userId: req.query.userId });
   const rejected = await Question.countDocuments({ status: 'rejected', userId: req.query.userId });
+  // number of question contributed per day
+  const contribute = await Question.aggregate([
+    {
+      $match: { createdAt: { $gte: new Date('2022-03-01T00:00:00.000Z'), $lt: new Date('2022-08-01T00:00:00.000Z') } },
+    },
+    {
+      $group: {
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+        totalQuestion: { $sum: 1 },
+      },
+    },
+  ]);
+  // number of question contributed per month
+  const month = await Question.aggregate([
+    {
+      $group: {
+        _id: { $month: '$createdAt' },
+        totalQuestions: { $sum: 1 },
+      },
+    },
+  ]);
   await apiResponse.successResponseWithData(res, 'Success', {
-    total, approved, pending, rejected,
+    total, approved, pending, rejected, contribute, month,
   });
 };
+
 module.exports = {
-  Test, QuestionList, AddQuestion, UpdateQuestion, GeneratePaper, SwitchQuestion, Stats,
+  Test,
+  QuestionList,
+  AddQuestion,
+  UpdateQuestion,
+  GeneratePaper,
+  SwitchQuestion,
+  Stats,
+  GeneratePDF,
 };
