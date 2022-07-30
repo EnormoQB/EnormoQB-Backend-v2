@@ -18,6 +18,7 @@ mongoose
   .connect(process.env.MONGODB_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    replicaSet: 'rs0',
   })
   .then(() => {
     console.log('Connected to MongoDB');
