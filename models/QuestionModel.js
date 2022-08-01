@@ -12,6 +12,7 @@ const QuestionSchema = new mongoose.Schema(
     imageUrl: { type: String, required: false },
     difficulty: { type: String, required: true, default: 'easy' },
     userId: { type: String, required: true },
+    answerExplaination: { type: String, required: false },
   },
   { timestamps: true },
 );
