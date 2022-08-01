@@ -12,7 +12,7 @@ jobs:
     - name: Pull latest code and build
       uses: appleboy/ssh-action@master
       with:
-        host: 74.220.20.80
+        host: ${{ secrets.SSH_HOST }}
         username: root
         key: ${{ secrets.SSH_SECRET }}
         port: 22
