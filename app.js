@@ -71,15 +71,15 @@ app.use(passport.session());
 app.use(logger('dev'));
 
 const adminBroRouter = initializeAdmin(sessionConfig);
-app.use('/admin', adminBroRouter);
+app.use(`${process.env.BASE_PATH}admin`, adminBroRouter);
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 // Route Prefixes
-app.use('/', indexRouter);
-app.use('/auth/', authRouter);
-app.use('/api/', apiRouter);
+app.use(`${process.env.BASE_PATH}`, indexRouter);
+app.use(`${process.env.BASE_PATH}auth/`, authRouter);
+app.use(`${process.env.BASE_PATH}api/`, apiRouter);
 
 // throw 404 if URL not found
 app.all('*', (req, res) => apiResponse.notFoundResponse(res, 'Page not found'));
