@@ -51,7 +51,7 @@ const initializeAdmin = (sessionConfig) => {
     sessionConfig,
   );
 
-  return adminBroRouter;
+  return { adminBro, adminBroRouter };
 };
 
 module.exports = initializeAdmin;
