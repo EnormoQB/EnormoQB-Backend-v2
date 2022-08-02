@@ -7,6 +7,7 @@ services:
     command: npm start
     environment:
       - MONGODB_URL=mongodb://mongo1:27017,mongo2:27018,mongo3:27019/enormoDB?retryWrites=true&w=majority
+      - PORT=8989
     depends_on:
       - mongo-setup
       - mongo1

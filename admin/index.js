@@ -10,14 +10,14 @@ const theme = require('./theme');
 const initializeAdmin = (sessionConfig) => {
   const adminBro = new AdminBro({
     resources: [User, Question, QuestionPaper, PendingInvites],
-    rootPath: '/admin',
-    loginPath: '/admin/login',
-    logoutPath: '/admin/logout',
+    rootPath: `${process.env.ADMIN_ROOT_PATH}admin`,
+    loginPath: `${process.env.ADMIN_ROOT_PATH}admin/login`,
+    logoutPath: `${process.env.ADMIN_ROOT_PATH}admin/logout`,
     branding: {
       companyName: 'EnormoQB',
       theme,
       softwareBrothers: false,
-      logo: '/logo.svg',
+      logo: `${process.env.ADMIN_ROOT_PATH}logo.svg`,
     },
     pages: {
       'Create Admin': {
