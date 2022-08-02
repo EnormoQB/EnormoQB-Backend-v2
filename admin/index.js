@@ -17,7 +17,7 @@ const initializeAdmin = (sessionConfig) => {
       companyName: 'EnormoQB',
       theme,
       softwareBrothers: false,
-      logo: `${process.env.BASE_PATH}/logo.svg`,
+      logo: `${process.env.BASE_PATH}logo.svg`,
     },
     pages: {
       'Create Admin': {
