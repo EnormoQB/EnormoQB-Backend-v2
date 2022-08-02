@@ -65,7 +65,8 @@ services:
         '/data/db',
       ]
     volumes:
-      - mongo_data1:/data
+      - ./volumes/mongodb/mongo/data1/db:/data/db # This is where your volume will persist. e.g. VOLUME-DIR = ./volumes/mongodb
+      - ./volumes/mongodb/mongo/data1/configdb:/data/configdb
 
   mongo2:
     hostname: mongo2
@@ -91,7 +92,8 @@ services:
         '/data/db',
       ]
     volumes:
-      - mongo_data2:/data
+      - ./volumes/mongodb/mongo/data2/db:/data/db # This is where your volume will persist. e.g. VOLUME-DIR = ./volumes/mongodb
+      - ./volumes/mongodb/mongo/data2/configdb:/data/configdb
 
   mongo3:
     hostname: mongo3
@@ -117,9 +119,5 @@ services:
         '/data/db',
       ]
     volumes:
-      - mongo_data3:/data
-
-volumes:
-  mongo_data1:
-  mongo_data2:
-  mongo_data3:
+      - ./volumes/mongodb/mongo/data3/db:/data/db # This is where your volume will persist. e.g. VOLUME-DIR = ./volumes/mongodb
+      - ./volumes/mongodb/mongo/data3/configdb:/data/configdb
