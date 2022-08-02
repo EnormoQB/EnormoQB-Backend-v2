@@ -78,8 +78,8 @@ app.use(express.json());
 
 // Route Prefixes
 app.use('/', indexRouter);
-app.use('auth/', authRouter);
-app.use('api/', apiRouter);
+app.use('/auth', authRouter);
+app.use('/api', apiRouter);
 
 // throw 404 if URL not found
 app.all('*', (req, res) => apiResponse.notFoundResponse(res, 'Page not found'));
