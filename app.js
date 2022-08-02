@@ -70,8 +70,8 @@ app.use(passport.session());
 
 app.use(logger('dev'));
 
-const { adminBro, adminBroRouter } = initializeAdmin(sessionConfig);
-app.use(adminBro.options.rootPath, adminBroRouter);
+const { adminBroRouter } = initializeAdmin(sessionConfig);
+app.use('/admin', adminBroRouter);
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
