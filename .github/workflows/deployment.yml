@@ -22,6 +22,6 @@ jobs:
           cd EnormoQB/Backend
           git checkout main
           git pull
-          npm ci
+          npm i
           sudo scripts/updateContainer.sh
 

@@ -22,5 +22,5 @@ jobs:
           cd EnormoQB/Backend
           git checkout develop
           git pull
-          npm ci
+          npm i
           sudo scripts/updateDockerDev.sh
