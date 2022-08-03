@@ -47,7 +47,7 @@ const getLogger = () => {
     exitOnError: false,
   });
 
-  if (process.env.NODE_ENV && process.env.NODE_ENV === 'production') {
+  if (process.env.FILE_LOGGING) {
     logger.add(
       new winston.transports.File({
         filename: '/var/log/enormoqb.log',

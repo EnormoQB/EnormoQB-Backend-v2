@@ -6,7 +6,7 @@ services:
       default:
     command: npm start
     volumes:
-      - ./logs/enormoqb.log:/var/log/enormoqb.log
+      - ./logs:/var/log
     environment:
       - MONGODB_URL=mongodb://mongo1:27017,mongo2:27018,mongo3:27019/enormoDB?retryWrites=true&w=majority
     depends_on:
