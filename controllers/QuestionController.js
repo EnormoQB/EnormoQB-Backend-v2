@@ -3,6 +3,7 @@ const PdfMake = require('pdfmake');
 const fs = require('fs');
 const apiResponse = require('../helpers/apiResponse');
 const Question = require('../models/QuestionModel');
+const logger = require('../helpers/winston');
 // const User = require('../models/UserModel');
 
 mongoose.set('useFindAndModify', false);
@@ -120,7 +121,7 @@ const AddQuestion = async (req, res, next) => {
     .save()
     .then(() => apiResponse.successResponse(res, 'Successfully added'))
     .catch((err) => {
-      console.log(err);
+      logger.error(err);
       return apiResponse.ErrorResponse(res, 'Error while adding Question');
     });
 };
@@ -133,7 +134,7 @@ const UpdateQuestion = async (req, res, next) => {
   })
     .then(() => apiResponse.successResponse(res, 'Question Status Updated'))
     .catch((err) => {
-      console.log(err);
+      logger.error(err);
       return apiResponse.ErrorResponse(res, 'Error while updating Question');
     });
 };
@@ -305,7 +306,7 @@ const SwitchQuestion = async (req, res, next) => {
 };
 
 const Stats = async (req, res, next) => {
-  console.log(req.query);
+  logger.info(req.query);
   const total = await Question.countDocuments();
   const approved = await Question.countDocuments({ status: 'approved', userId: req.query.userId });
   const pending = await Question.countDocuments({ status: 'pending', userId: req.query.userId });

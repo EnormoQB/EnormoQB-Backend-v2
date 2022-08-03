@@ -5,12 +5,13 @@ const session = require('express-session');
 const mongoose = require('mongoose');
 const MongoDBStore = require('connect-mongodb-session')(session);
 const passport = require('passport');
-const logger = require('morgan');
+const morgan = require('morgan');
 const indexRouter = require('./routes/index');
 const apiRouter = require('./routes/api');
 const authRouter = require('./auth');
 const initializeAdmin = require('./admin');
 const apiResponse = require('./helpers/apiResponse');
+const logger = require('./helpers/winston');
 
 const app = express();
 
@@ -21,7 +22,7 @@ mongoose
     replicaSet: 'rs0',
   })
   .then(() => {
-    console.log('Connected to MongoDB');
+    logger.info('Connected to MongoDB');
   });
 
 const store = new MongoDBStore({
@@ -68,7 +69,7 @@ app.use(express.static('public'));
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use(logger('dev'));
+app.use(morgan('dev', { stream: logger.stream }));
 
 const { adminBroRouter } = initializeAdmin(sessionConfig);
 app.use('/admin', adminBroRouter);

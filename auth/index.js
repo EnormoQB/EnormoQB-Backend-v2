@@ -5,6 +5,7 @@ const router = express.Router();
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('../models/UserModel');
 const PendingInvites = require('../models/PendingInvites');
+const logger = require('../helpers/winston');
 
 passport.use(
   new GoogleStrategy(
@@ -52,7 +53,7 @@ passport.use(
                   email,
                 },
                 () => {
-                  console.log(`Deleted Invitation for ${email}`);
+                  logger.debug(`Deleted Invitation for ${email}`);
                 },
               );
             }
@@ -64,7 +65,7 @@ passport.use(
           }
         });
       } catch (e) {
-        console.log(e);
+        logger.error(e);
       }
     },
   ),
