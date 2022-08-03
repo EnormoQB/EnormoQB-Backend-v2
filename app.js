@@ -69,7 +69,14 @@ app.use(express.static('public'));
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use(morgan('dev', { stream: logger.stream }));
+app.use(
+  morgan(
+    ':method :url HTTP/:http-version :status :res[content-length] - :response-time ms',
+    {
+      stream: logger.stream,
+    },
+  ),
+);
 
 const { adminBroRouter } = initializeAdmin(sessionConfig);
 app.use('/admin', adminBroRouter);
