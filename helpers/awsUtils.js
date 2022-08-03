@@ -1,4 +1,5 @@
 const AWS = require('aws-sdk');
+const logger = require('./winston');
 
 const endpoint = process.env.AWS_ENDPOINT;
 const bucket = process.env.S3_BUCKET;
@@ -18,7 +19,7 @@ const uploadFileToS3 = async (file, filename, type) => {
       ContentType: type,
     })
     .promise();
-  console.log(`${filename} uploaded`);
+  logger.info(`${filename} uploaded`);
 
   const url = s3.getSignedUrl('getObject', {
     Bucket: bucket,
