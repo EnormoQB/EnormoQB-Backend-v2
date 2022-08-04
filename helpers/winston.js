@@ -21,8 +21,6 @@ const stackDriverLevels = {
   },
 };
 
-winston.addColors(stackDriverLevels.colors);
-
 const getLogger = () => {
   if (logger) {
     return logger;
@@ -35,7 +33,9 @@ const getLogger = () => {
       new winston.transports.Console({
         stderrLevels: ['emergency', 'alert', 'critical', 'error', 'warning'],
         format: winston.format.combine(
-          winston.format.colorize(),
+          winston.format.colorize({
+            colors: stackDriverLevels.colors,
+          }),
           winston.format.timestamp({ format: 'DD-MM-YYYY hh:mm:ss A' }),
           winston.format.errors({ stack: true }),
           winston.format.printf(({ level, message, timestamp, stack }) => {
@@ -51,7 +51,7 @@ const getLogger = () => {
     exitOnError: false,
   });
 
-  if (process.env.NODE_ENV && process.env.NODE_ENV === 'production') {
+  if (process.env.FILE_LOGGING) {
     logger.add(
       new winston.transports.File({
         filename: '/var/log/enormoqb.log',
