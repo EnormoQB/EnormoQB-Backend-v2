@@ -8,135 +8,112 @@ const logger = require('../helpers/winston');
 
 mongoose.set('useFindAndModify', false);
 
-const Test = (req, res, next) => {};
-
 const QuestionList = async (req, res, next) => {
-  const query = [];
-  // Sort
-  query.push({
-    $sort: { updatedAt: -1 },
-  });
-  // Filter according to standard
-  if (req.query.standard && req.query.standard != null) {
-    query.push({
-      $match: {
-        standard: req.query.standard,
+  try {
+    const { standard, difficulty, subject, status, userId, topics, page } =
+      req.query;
+
+    const currentPage = page ? parseInt(page, 10) : 1;
+    const perPage = 15;
+    const skip = (currentPage - 1) * perPage;
+
+    const filters = {
+      ...(standard ? { standard: { $regex: standard, $options: 'i' } } : {}),
+      ...(difficulty
+        ? { difficulty: { $regex: difficulty, $options: 'i' } }
+        : {}),
+      ...(subject ? { subject: { $regex: subject, $options: 'i' } } : {}),
+      ...(status ? { status: { $regex: status, $options: 'i' } } : {}),
+      ...(userId ? { userId } : {}),
+      ...(topics && topics.length !== 0 ? { topic: { $in: [topics] } } : {}),
+    };
+
+    const questions = await Question.find(filters)
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(perPage)
+      .exec();
+
+    const total = await Question.countDocuments(filters).exec();
+
+    const data = {
+      questions,
+      meta: {
+        total,
+        currentPage: page,
+        perPage,
+        totalPages: Math.ceil(total / perPage),
       },
-    });
-  }
-  // Filter according to difficulty
-  if (req.query.difficulty && req.query.difficulty != null) {
-    query.push({
-      $match: {
-        difficulty: { $regex: req.query.difficulty, $options: 'i' },
-      },
-    });
-  }
-  // Filter according to subject
-  if (req.query.subject && req.query.subject != null) {
-    query.push({
-      $match: {
-        subject: { $regex: req.query.subject, $options: 'i' },
-      },
-    });
-  }
-  // Filter according to status
-  if (req.query.status && req.query.status != null) {
-    query.push({
-      $match: {
-        status: { $regex: req.query.status, $options: 'i' },
-      },
-    });
-  }
-  // Filter according to userId
-  if (req.query.userId && req.query.userId != null) {
-    query.push({
-      $match: {
-        userId: { $regex: req.query.userId, $options: 'i' },
-      },
-    });
-  }
-  // Filter according to topics
-  if (req.query.topics && req.query.topics != null) {
-    query.push({
-      $match: {
-        topic: { $in: [req.query.topics] },
-      },
-    });
-  }
-  // Pagination
-  const total = (await Question.aggregate(query)).length;
-  const page = req.query.page ? parseInt(req.query.page, 10) : 1;
-  const perPage = 15;
-  const skip = (page - 1) * perPage;
-  query.push({
-    $skip: skip,
-  });
-  query.push({
-    $limit: perPage,
-  });
-  const items = await Question.aggregate(query);
-  const data = {
-    items,
-    meta: {
-      total,
-      currentPage: page,
-      perPage,
-      totalPages: Math.ceil(total / perPage),
-    },
-  };
-  if (items.length !== 0) {
-    apiResponse.successResponseWithData(res, 'Success', data);
-  } else {
-    apiResponse.ErrorResponse(res, 'No data found');
+    };
+    if (questions.length !== 0) {
+      apiResponse.successResponseWithData(res, 'Success', data);
+    } else {
+      apiResponse.notFoundResponse(res, 'No data found');
+    }
+  } catch (error) {
+    logger.error('Error :', error);
+    apiResponse.ErrorResponse(res, error);
+    next(error);
   }
 };
 
 const AddQuestion = async (req, res, next) => {
-  const {
-    standard,
-    topics,
-    options,
-    question,
-    subject,
-    difficulty,
-    userId,
-    answerExplaination,
-  } = req.body;
-  const answer = options.find((option) => option.isCorrect).value;
-  const finalOptions = options.map((option) => option.value);
-  const newItem = new Question({
-    question,
-    options: finalOptions,
-    answer,
-    standard,
-    subject,
-    topic: topics,
-    // imageUrl,
-    difficulty,
-    userId,
-    answerExplaination,
-  });
-  await newItem
-    .save()
-    .then(() => apiResponse.successResponse(res, 'Successfully added'))
-    .catch((err) => {
-      logger.error(err);
-      return apiResponse.ErrorResponse(res, 'Error while adding Question');
+  try {
+    const {
+      standard,
+      topics,
+      options,
+      question,
+      subject,
+      difficulty,
+      userId,
+      answerExplaination,
+    } = req.body;
+    const answer = options.find((option) => option.isCorrect).value;
+    const finalOptions = options.map((option) => option.value);
+    const newItem = new Question({
+      question,
+      options: finalOptions,
+      answer,
+      standard,
+      subject,
+      topic: topics,
+      // imageUrl,
+      difficulty,
+      userId,
+      answerExplaination,
     });
+    await newItem
+      .save()
+      .then(() => apiResponse.successResponse(res, 'Successfully added'))
+      .catch((err) => {
+        logger.error('Error :', err);
+        return apiResponse.ErrorResponse(res, 'Error while adding Question');
+      });
+  } catch (error) {
+    logger.error('Error :', error);
+    apiResponse.ErrorResponse(res, error);
+    next(error);
+  }
 };
 
 const UpdateQuestion = async (req, res, next) => {
-  const { id } = req.params;
-  const { status } = req.body;
-  await Question.findByIdAndUpdate(id, {
-    status,
-  })
-    .then(() => apiResponse.successResponse(res, 'Question Status Updated'))
-    .catch((err) => {
-      logger.error(err);
-      return apiResponse.ErrorResponse(res, 'Error while updating Question');
-    });
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    await Question.findByIdAndUpdate(id, {
+      status,
+    })
+      .then(() => apiResponse.successResponse(res, 'Question Status Updated'))
+      .catch((err) => {
+        logger.error('Error :', err);
+        return apiResponse.ErrorResponse(res, 'Error while updating Question');
+      });
+  } catch (error) {
+    logger.error('Error :', error);
+    apiResponse.ErrorResponse(res, error);
+    next(error);
+  }
 };
 
 const GeneratePaper = async (req, res, next) => {
@@ -193,9 +170,7 @@ const GeneratePaper = async (req, res, next) => {
 };
 
 const GeneratePDF = async (req, res, next) => {
-  const {
-    standard, subject, board, pdfData,
-  } = req.body;
+  const { standard, subject, board, pdfData } = req.body;
   const fonts = {
     Roboto: {
       normal: 'fonts/Roboto/Roboto-Regular.ttf',
@@ -275,70 +250,91 @@ const GeneratePDF = async (req, res, next) => {
 };
 
 const SwitchQuestion = async (req, res, next) => {
-  const { id } = req.query;
-  const ans = await Question.findById(id);
-  const query = [];
-  query.push({
-    $match: {
+  try {
+    const { id } = req.query;
+    const ans = await Question.findById(id);
+
+    const items = await Question.find({
       standard: ans.standard,
       subject: { $regex: ans.subject, $options: 'i' },
       status: { $regex: 'approved', $options: 'i' },
       difficulty: { $regex: ans.difficulty, $options: 'i' },
       topic: { $in: ans.topic },
-    },
-  });
+      _id: { $ne: new mongoose.Types.ObjectId(id) },
+    })
+      .limit(3)
+      .exec();
 
-  const items = await Question.aggregate(query);
-  if (items.length === 0) {
-    apiResponse.ErrorResponse(res, 'No data found');
-  }
-
-  if (items.length === 1) {
-    res.send(ans);
-  } else {
-    let result;
-    do {
-      result = items[Math.floor(Math.random() * items.length)];
-    // eslint-disable-next-line eqeqeq
-    } while (result._id == id);
-    await apiResponse.successResponseWithData(res, 'Success', result);
+    if (items.length === 0) {
+      apiResponse.notFoundResponse(res, 'No data found');
+    } else {
+      const result = items[Math.floor(Math.random() * items.length)];
+      await apiResponse.successResponseWithData(res, 'Success', result);
+    }
+  } catch (error) {
+    logger.error('Error :', error);
+    apiResponse.ErrorResponse(res, error);
+    next(error);
   }
 };
 
 const Stats = async (req, res, next) => {
-  logger.info(req.query);
-  const total = await Question.countDocuments();
-  const approved = await Question.countDocuments({ status: 'approved', userId: req.query.userId });
-  const pending = await Question.countDocuments({ status: 'pending', userId: req.query.userId });
-  const rejected = await Question.countDocuments({ status: 'rejected', userId: req.query.userId });
-  // number of question contributed per day
-  const contribute = await Question.aggregate([
-    {
-      $match: { createdAt: { $gte: new Date('2022-03-01T00:00:00.000Z'), $lt: new Date('2022-08-01T00:00:00.000Z') } },
-    },
-    {
-      $group: {
-        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-        totalQuestion: { $sum: 1 },
+  try {
+    const total = await Question.countDocuments();
+    const approved = await Question.countDocuments({
+      status: 'approved',
+      userId: req.query.userId,
+    });
+    const pending = await Question.countDocuments({
+      status: 'pending',
+      userId: req.query.userId,
+    });
+    const rejected = await Question.countDocuments({
+      status: 'rejected',
+      userId: req.query.userId,
+    });
+    // number of question contributed per day
+    const contribute = await Question.aggregate([
+      {
+        $match: {
+          createdAt: {
+            $gte: new Date('2022-03-01T00:00:00.000Z'),
+            $lt: new Date('2022-08-01T00:00:00.000Z'),
+          },
+        },
       },
-    },
-  ]);
-  // number of question contributed per month
-  const month = await Question.aggregate([
-    {
-      $group: {
-        _id: { $month: '$createdAt' },
-        totalQuestions: { $sum: 1 },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          totalQuestion: { $sum: 1 },
+        },
       },
-    },
-  ]);
-  await apiResponse.successResponseWithData(res, 'Success', {
-    total, approved, pending, rejected, contribute, month,
-  });
+    ]);
+    // number of question contributed per month
+    const month = await Question.aggregate([
+      {
+        $group: {
+          _id: { $month: '$createdAt' },
+          totalQuestions: { $sum: 1 },
+        },
+      },
+    ]);
+    await apiResponse.successResponseWithData(res, 'Success', {
+      total,
+      approved,
+      pending,
+      rejected,
+      contribute,
+      month,
+    });
+  } catch (error) {
+    logger.error('Error :', error);
+    apiResponse.ErrorResponse(res, error);
+    next(error);
+  }
 };
 
 module.exports = {
-  Test,
   QuestionList,
   AddQuestion,
   UpdateQuestion,

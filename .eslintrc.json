@@ -21,6 +21,7 @@
     "no-console": "off",
     "no-underscore-dangle": "off",
     "no-process-exit": "off",
-    "operator-linebreak":"off"
+    "operator-linebreak":"off",
+    "object-curly-newline":"off"
   }
 }
