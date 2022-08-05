@@ -280,18 +280,19 @@ const SwitchQuestion = async (req, res, next) => {
 
 const Stats = async (req, res, next) => {
   try {
+    const { userId } = req.query;
     const total = await Question.countDocuments();
     const approved = await Question.countDocuments({
-      status: 'approved',
-      userId: req.query.userId,
+      status: { $regex: 'approved', $options: 'i' },
+      ...(userId ? { userId } : {}),
     });
     const pending = await Question.countDocuments({
-      status: 'pending',
-      userId: req.query.userId,
+      status: { $regex: 'pending', $options: 'i' },
+      ...(userId ? { userId } : {}),
     });
     const rejected = await Question.countDocuments({
-      status: 'rejected',
-      userId: req.query.userId,
+      status: { $regex: 'rejected', $options: 'i' },
+      ...(userId ? { userId } : {}),
     });
     // number of question contributed per day
     const contribute = await Question.aggregate([
