@@ -37,9 +37,13 @@ const getLogger = () => {
             colors: stackDriverLevels.colors,
           }),
           winston.format.timestamp({ format: 'DD-MM-YYYY hh:mm:ss A' }),
-          winston.format.printf(
-            (info) => `${info.level} - ${info.timestamp} : ${info.message}`,
-          ),
+          winston.format.errors({ stack: true }),
+          winston.format.printf(({ level, message, timestamp, stack }) => {
+            if (stack) {
+              return `${timestamp} ${level}: ${message} - ${stack}`;
+            }
+            return `${timestamp} ${level}: ${message}`;
+          }),
         ),
         handleExceptions: true,
       }),
@@ -53,6 +57,7 @@ const getLogger = () => {
         filename: '/var/log/enormoqb.log',
         format: winston.format.combine(
           winston.format.timestamp(),
+          winston.format.errors({ stack: true }),
           winston.format.json(),
         ),
         handleExceptions: true,

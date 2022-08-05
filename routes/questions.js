@@ -5,7 +5,6 @@ const paperGeneration = require('../controllers/paperGeneration');
 
 const router = express.Router();
 
-router.get('/test', QuestionController.Test);
 router.get('/list', QuestionController.QuestionList);
 router.post('/add', parseReqForImage, QuestionController.AddQuestion);
 router.patch('/update/:id', QuestionController.UpdateQuestion);

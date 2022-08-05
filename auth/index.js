@@ -64,8 +64,8 @@ passport.use(
             cb(null, doc);
           }
         });
-      } catch (e) {
-        logger.error(e);
+      } catch (error) {
+        logger.error('Error :', error);
       }
     },
   ),
