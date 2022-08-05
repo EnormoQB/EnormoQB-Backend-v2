@@ -299,7 +299,7 @@ const Stats = async (req, res, next) => {
         $match: {
           createdAt: {
             $gte: new Date('2022-03-01T00:00:00.000Z'),
-            $lt: new Date('2022-08-01T00:00:00.000Z'),
+            $lt: new Date(),
           },
         },
       },
