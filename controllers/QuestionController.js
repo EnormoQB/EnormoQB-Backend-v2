@@ -58,39 +58,6 @@ const QuestionList = async (req, res, next) => {
 };
 
 const AddQuestion = async (req, res, next) => {
-<<<<<<< HEAD
-  const {
-    standard,
-    topics,
-    options,
-    question,
-    subject,
-    difficulty,
-    userId,
-    answer,
-    answerExplaination,
-  } = req.body;
-  // const answer = options.find((option) => option.isCorrect);
-  // const finalOptions = options.map((option) => option.value);
-  const newItem = new Question({
-    question,
-    options,
-    answer,
-    standard,
-    subject,
-    topic: topics,
-    // imageUrl,
-    difficulty,
-    userId,
-    answerExplaination,
-  });
-  await newItem
-    .save()
-    .then(() => apiResponse.successResponse(res, 'Successfully added'))
-    .catch((err) => {
-      logger.error(err);
-      return apiResponse.ErrorResponse(res, 'Error while adding Question');
-=======
   try {
     const {
       standard,
@@ -100,13 +67,13 @@ const AddQuestion = async (req, res, next) => {
       subject,
       difficulty,
       userId,
+      answer,
       answerExplaination,
     } = req.body;
-    const answer = options.find((option) => option.isCorrect).value;
-    const finalOptions = options.map((option) => option.value);
+    console.log(req.body);
     const newItem = new Question({
       question,
-      options: finalOptions,
+      options,
       answer,
       standard,
       subject,
@@ -115,7 +82,6 @@ const AddQuestion = async (req, res, next) => {
       difficulty,
       userId,
       answerExplaination,
->>>>>>> f84845dc01d42c724af393e28a7ab6238bf083f6
     });
     await newItem
       .save()
@@ -389,9 +355,9 @@ const generatePaper = async (req, res, next) => {
   let totalQuestons = easy + medium + hard;
   const topicsPerQuestion = totalQuestons / topicsDistribution.length;
   topicsDistribution.forEach(async (topic) => {
-    //  if(topic.queNum ==-1){
+    //  if(topic.cnt ==-1){
     // eslint-disable-next-line no-param-reassign
-    topic.queNum = topicsPerQuestion;
+    topic.cnt = topicsPerQuestion;
     // }
   });
 
@@ -401,7 +367,7 @@ const generatePaper = async (req, res, next) => {
         topic: { $in: topic.name },
       },
     });
-    let limit = Math.floor(Math.random() * Math.min(topic.queNum + 1, easy + 1));
+    let limit = Math.floor(Math.random() * Math.min(topic.cnt + 1, easy + 1));
     query.push({
       $limit: limit,
       $match: {
@@ -414,10 +380,10 @@ const generatePaper = async (req, res, next) => {
     // ans.push(items);
     // easy -= items.length();
     // // eslint-disable-next-line no-param-reassign
-    // topic.queNum -= items.length();
+    // topic.cnt -= items.length();
 
     // for medium
-    limit = Math.floor(Math.random() * Math.min(topic.queNum, medium));
+    limit = Math.floor(Math.random() * Math.min(topic.cnt, medium));
     query.push({
       $limit: limit,
       $match: {
@@ -430,10 +396,10 @@ const generatePaper = async (req, res, next) => {
     // ans.push(items);
     // medium -= items.length();
     // // eslint-disable-next-line no-param-reassign
-    // topic.queNum -= items.length();
+    // topic.cnt -= items.length();
 
     // for hard
-    limit = Math.floor(Math.random() * Math.min(topic.queNum, hard));
+    limit = Math.floor(Math.random() * Math.min(topic.cnt, hard));
     query.push({
       $limit: limit,
       $match: {
@@ -446,7 +412,7 @@ const generatePaper = async (req, res, next) => {
     ans.push(items);
     hard -= items.length();
     // eslint-disable-next-line no-param-reassign
-    topic.queNum -= items.length();
+    topic.cnt -= items.length();
     query.pop();
   });
   totalQuestons -= ans.length;
