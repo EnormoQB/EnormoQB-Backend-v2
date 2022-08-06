@@ -116,59 +116,6 @@ const UpdateQuestion = async (req, res, next) => {
   }
 };
 
-// const GeneratePaper = async (req, res, next) => {
-//   const query = [];
-
-//   if (req.query.subject && req.query.subject != null) {
-//     query.push({
-//       $match: {
-//         subject: { $regex: req.query.subject, $options: 'i' },
-//         standard: req.query.standard,
-//         status: { $regex: 'approved', $options: 'i' },
-//         difficulty: { $regex: 'easy', $options: 'i' },
-//       },
-//     });
-//   }
-//   let items = await Question.aggregate(query);
-//   const ans = [];
-
-//   for (let i = 0; i < req.query.easy; i += 1) {
-//     const random = Math.floor(Math.random() * items.length);
-//     ans.push(items[random]);
-//     items.splice(random, 1);
-//   }
-
-//   query.pop();
-//   query.push({
-//     $match: {
-//       difficulty: { $regex: 'medium', $options: 'i' },
-//     },
-//   });
-
-//   items = await Question.aggregate(query);
-
-//   for (let i = 0; i < req.query.medium; i += 1) {
-//     const random = Math.floor(Math.random() * items.length);
-//     ans.push(items[random]);
-//     items.splice(random, 1);
-//   }
-//   query.pop();
-//   query.push({
-//     $match: {
-//       difficulty: { $regex: 'hard', $options: 'i' },
-//     },
-//   });
-
-//   items = await Question.aggregate(query);
-
-//   for (let i = 0; i < req.query.hard; i += 1) {
-//     const random = Math.floor(Math.random() * items.length);
-//     ans.push(items[random]);
-//     items.splice(random, 1);
-//   }
-//   res.send(ans);
-// };
-
 const GeneratePDF = async (req, res, next) => {
   const { standard, subject, board, pdfData } = req.body;
   const fonts = {

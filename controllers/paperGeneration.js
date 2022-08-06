@@ -1,7 +1,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-param-reassign */
 const mongoose = require('mongoose');
-// const apiResponse = require('../helpers/apiResponse');
+const apiResponse = require('../helpers/apiResponse');
 const Question = require('../models/QuestionModel');
 
 const helperFn = async (topic, type, ans, tough, filter, idList, limit = 0) => {
@@ -84,7 +84,8 @@ const GeneratePaper = async (req, res, next) => {
     const items = await Question.find(filter).limit(totalQuestions);
     items.map((item) => ans.push(item));
   }
-  res.send(ans);
+  // res.send(ans);
+  return apiResponse.successResponseWithData(res, 'Paper Generated Successfully', ans);
 };
 
 module.exports = {
