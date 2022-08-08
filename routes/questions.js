@@ -8,7 +8,6 @@ const router = express.Router();
 router.get('/list', QuestionController.QuestionList);
 router.post('/add', parseReqForImage, QuestionController.AddQuestion);
 router.patch('/update/:id', QuestionController.UpdateQuestion);
-// router.get('/paper', QuestionController.GeneratePaper);
 router.post('/paper', paperGeneration.GeneratePaper);
 router.get('/switch', QuestionController.SwitchQuestion);
 router.get('/stats', QuestionController.Stats);

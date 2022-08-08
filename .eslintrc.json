@@ -22,6 +22,8 @@
     "no-underscore-dangle": "off",
     "no-process-exit": "off",
     "operator-linebreak": "off",
-    "object-curly-newline": "off"
+    "object-curly-newline": "off",
+    "no-await-in-loop":"off",
+    "no-param-reassign":"off"
   }
 }
