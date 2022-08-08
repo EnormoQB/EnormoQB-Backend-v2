@@ -4,6 +4,7 @@ const fs = require('fs');
 const apiResponse = require('../helpers/apiResponse');
 const Question = require('../models/QuestionModel');
 const logger = require('../helpers/winston');
+const { uploadFileToS3 } = require('../helpers/awsUtils');
 // const User = require('../models/UserModel');
 
 mongoose.set('useFindAndModify', false);
@@ -69,21 +70,30 @@ const AddQuestion = async (req, res, next) => {
       userId,
       answer,
       answerExplaination,
-    } = req.body;
-    console.log(req.body);
-    const newItem = new Question({
+    } = JSON.parse(req.body.data);
+
+    const questionId = new mongoose.Types.ObjectId();
+
+    await uploadFileToS3(
+      req.file.buffer,
+      questionId.toString(),
+      req.file.mimetype,
+    );
+
+    const newQuestion = new Question({
+      _id: questionId,
       question,
       options,
       answer,
       standard,
       subject,
       topic: topics,
-      // imageUrl,
+      imageKey: questionId.toString(),
       difficulty,
       userId,
       answerExplaination,
     });
-    await newItem
+    await newQuestion
       .save()
       .then(() => apiResponse.successResponse(res, 'Successfully added'))
       .catch((err) => {
@@ -101,9 +111,7 @@ const UpdateQuestion = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    await Question.findByIdAndUpdate(id, {
-      status,
-    })
+    await Question.findByIdAndUpdate(id, { status })
       .then(() => apiResponse.successResponse(res, 'Question Status Updated'))
       .catch((err) => {
         logger.error('Error :', err);
@@ -286,9 +294,7 @@ const generatePaper = async (req, res, next) => {
   const query = [];
   const ans = [];
   let items = [];
-  const {
-    subject, standard, topicsDistribution,
-  } = req.body;
+  const { subject, standard, topicsDistribution } = req.body;
   // eslint-disable-next-line prefer-const
   let { easy, medium, hard } = req.body;
   if (subject && subject != null) {

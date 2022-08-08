@@ -114,6 +114,27 @@ const GeneratePaper = async (req, res, next) => {
   }
 };
 
+const createNewPaper = (req, res, next) => {
+  try {
+    const {
+      instituteName,
+      standard,
+      subject,
+      topics,
+      examType,
+      board,
+      instructions,
+      time,
+      quesDiffDetails,
+      totalMarks,
+    } = JSON.parse(req.body.data);
+  } catch (error) {
+    logger.error('Error :', error);
+    apiResponse.ErrorResponse(res, error);
+    next(error);
+  }
+};
+
 module.exports = {
   GeneratePaper,
 };
