@@ -9,7 +9,7 @@ const QuestionSchema = new mongoose.Schema(
     standard: { type: String, required: true },
     subject: { type: String, required: true },
     topic: { type: [String], required: true },
-    imageUrl: { type: String, required: false },
+    imageKey: { type: String, required: false, default: null },
     difficulty: { type: String, required: true, default: 'easy' },
     userId: { type: String, required: true },
     answerExplaination: { type: String, required: false },

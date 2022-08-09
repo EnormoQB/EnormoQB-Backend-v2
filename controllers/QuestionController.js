@@ -1,9 +1,11 @@
 const mongoose = require('mongoose');
 const PdfMake = require('pdfmake');
 const fs = require('fs');
+const imageDataURI = require('image-data-uri');
 const apiResponse = require('../helpers/apiResponse');
 const Question = require('../models/QuestionModel');
 const logger = require('../helpers/winston');
+const { uploadFileToS3, downloadFromS3 } = require('../helpers/awsUtils');
 // const User = require('../models/UserModel');
 
 mongoose.set('useFindAndModify', false);
@@ -58,6 +60,7 @@ const QuestionList = async (req, res, next) => {
 };
 
 const AddQuestion = async (req, res, next) => {
+  console.log(req.body);
   try {
     const {
       standard,
@@ -69,21 +72,30 @@ const AddQuestion = async (req, res, next) => {
       userId,
       answer,
       answerExplaination,
-    } = req.body;
-    console.log(req.body);
-    const newItem = new Question({
+    } = JSON.parse(req.body.data);
+
+    const questionId = new mongoose.Types.ObjectId();
+
+    await uploadFileToS3(
+      req.file.buffer,
+      questionId.toString(),
+      req.file.mimetype,
+    );
+
+    const newQuestion = new Question({
+      _id: questionId,
       question,
       options,
       answer,
       standard,
       subject,
       topic: topics,
-      // imageUrl,
+      imageKey: questionId.toString(),
       difficulty,
       userId,
       answerExplaination,
     });
-    await newItem
+    await newQuestion
       .save()
       .then(() => apiResponse.successResponse(res, 'Successfully added'))
       .catch((err) => {
@@ -101,9 +113,7 @@ const UpdateQuestion = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    await Question.findByIdAndUpdate(id, {
-      status,
-    })
+    await Question.findByIdAndUpdate(id, { status })
       .then(() => apiResponse.successResponse(res, 'Question Status Updated'))
       .catch((err) => {
         logger.error('Error :', err);
@@ -126,14 +136,25 @@ const GeneratePDF = async (req, res, next) => {
       bolditalics: 'fonts/Roboto/Roboto-MediumItalic.ttf',
     },
   };
-  // const dd = {
-  //   content: [
-  //     'First paragraph',
-  //     'Another paragraph, this time a little bit longer to make sure,this line will ',
-  //   ],
-  // };
   const indexing = ['A', 'B', 'C', 'D'];
   const year = new Date().getFullYear();
+  // const imageurl = downloadFromS3(pdfData[0].imageKey);
+  // const final = imageDataURI.encodeFromURL(imageurl).then((result) => result);
+  // console.log(final);
+  const newPdfData = await pdfData.map(async (item) => {
+    if (item.imageKey !== null) {
+      const imageurl = downloadFromS3(item.imageKey);
+      const final = await imageDataURI.encodeFromURL(imageurl);
+      item.imageUrl = final;
+    }
+    return item;
+  });
+
+  await Promise.all(newPdfData);
+  console.log(Object.keys(newPdfData));
+  // await newPdfData.forEach((item) => {
+  //   console.log(item);
+  // });
   const dd = {
     content: [
       {
@@ -174,19 +195,22 @@ const GeneratePDF = async (req, res, next) => {
         italics: true,
         margin: [0, 12, 2, 20],
       },
-      pdfData.map((item, index) => ({
-        stack: [
-          {
-            text: `Q${index + 1}. ${item.question}`,
-            bold: true,
-            margin: [0, 0, 0, 10],
-          },
-          item.options.map((option, i) => ({
-            text: `${indexing[i]}. ${option}`,
-            margin: [0, 0, 0, 10],
-          })),
-        ],
-      })),
+      pdfData.map((item, index) => ({ stack: [
+        {
+          text: `Q${index + 1}. ${item.question}`,
+          bold: true,
+          margin: [0, 0, 0, 10],
+        },
+        // item.imageKey !== null ? {
+        //   image: item.imageUrl,
+        //   width: 100,
+        //   height: 100,
+        // } : ' ',
+        item.options.map((option, i) => ({
+          text: `${indexing[i]}. ${option}`,
+          margin: [0, 0, 0, 10],
+        })),
+      ] })),
     ],
   };
   const pdfmake = new PdfMake(fonts);
@@ -286,9 +310,7 @@ const generatePaper = async (req, res, next) => {
   const query = [];
   const ans = [];
   let items = [];
-  const {
-    subject, standard, topicsDistribution,
-  } = req.body;
+  const { subject, standard, topicsDistribution } = req.body;
   // eslint-disable-next-line prefer-const
   let { easy, medium, hard } = req.body;
   if (subject && subject != null) {

@@ -27,5 +27,12 @@ const uploadFileToS3 = async (file, filename, type) => {
   });
   return url;
 };
+const downloadFromS3 = (filename) => {
+  const url = s3.getSignedUrl('getObject', {
+    Bucket: bucket,
+    Key: filename,
+  });
+  return url;
+};
 
-module.exports = { uploadFileToS3 };
+module.exports = { uploadFileToS3, downloadFromS3 };
