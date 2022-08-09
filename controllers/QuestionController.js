@@ -128,6 +128,7 @@ const UpdateQuestion = async (req, res, next) => {
 
 const GeneratePDF = async (req, res, next) => {
   const { standard, subject, board, pdfData } = req.body;
+
   const fonts = {
     Roboto: {
       normal: 'fonts/Roboto/Roboto-Regular.ttf',
@@ -138,23 +139,18 @@ const GeneratePDF = async (req, res, next) => {
   };
   const indexing = ['A', 'B', 'C', 'D'];
   const year = new Date().getFullYear();
-  // const imageurl = downloadFromS3(pdfData[0].imageKey);
-  // const final = imageDataURI.encodeFromURL(imageurl).then((result) => result);
-  // console.log(final);
-  const newPdfData = await pdfData.map(async (item) => {
-    if (item.imageKey !== null) {
-      const imageurl = downloadFromS3(item.imageKey);
-      const final = await imageDataURI.encodeFromURL(imageurl);
-      item.imageUrl = final;
-    }
-    return item;
-  });
 
-  await Promise.all(newPdfData);
-  console.log(Object.keys(newPdfData));
-  // await newPdfData.forEach((item) => {
-  //   console.log(item);
-  // });
+  const newPdfData = await Promise.all(
+    pdfData.map(async (item) => {
+      if (item.imageKey !== null) {
+        const imageurl = downloadFromS3(item.imageKey);
+        const final = await imageDataURI.encodeFromURL(imageurl);
+        return { ...item, imageUrl: final };
+      }
+      return item;
+    }),
+  );
+
   const dd = {
     content: [
       {
@@ -195,22 +191,26 @@ const GeneratePDF = async (req, res, next) => {
         italics: true,
         margin: [0, 12, 2, 20],
       },
-      pdfData.map((item, index) => ({ stack: [
-        {
-          text: `Q${index + 1}. ${item.question}`,
-          bold: true,
-          margin: [0, 0, 0, 10],
-        },
-        // item.imageKey !== null ? {
-        //   image: item.imageUrl,
-        //   width: 100,
-        //   height: 100,
-        // } : ' ',
-        item.options.map((option, i) => ({
-          text: `${indexing[i]}. ${option}`,
-          margin: [0, 0, 0, 10],
-        })),
-      ] })),
+      newPdfData.map((item, index) => ({
+        stack: [
+          {
+            text: `Q${index + 1}. ${item.question}`,
+            bold: true,
+            margin: [0, 0, 0, 10],
+          },
+          item.imageKey !== null
+            ? {
+              image: item.imageUrl,
+              width: 100,
+              height: 100,
+            }
+            : ' ',
+          item.options.map((option, i) => ({
+            text: `${indexing[i]}. ${option}`,
+            margin: [0, 0, 0, 10],
+          })),
+        ],
+      })),
     ],
   };
   const pdfmake = new PdfMake(fonts);
