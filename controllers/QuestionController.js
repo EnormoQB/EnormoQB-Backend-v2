@@ -7,10 +7,20 @@ const Question = require('../models/QuestionModel');
 const logger = require('../helpers/winston');
 const { uploadFileToS3, downloadFromS3 } = require('../helpers/awsUtils');
 const QuestionPaper = require('../models/QuestionPaperModel');
+const reservedQuestions = require('../helpers/reservedQuestion');
 // const User = require('../models/UserModel');
 
 mongoose.set('useFindAndModify', false);
 
+const ReservedQuestions = async (req, res, next) => {
+  try {
+    await apiResponse.successResponseWithData(res, 'Success', reservedQuestions);
+  } catch (error) {
+    logger.error('Error :', error);
+    apiResponse.ErrorResponse(res, error);
+    next(error);
+  }
+};
 const QuestionList = async (req, res, next) => {
   try {
     const { standard, difficulty, subject, status, userId, topics, page } =
@@ -498,6 +508,7 @@ module.exports = {
   AddQuestion,
   UpdateQuestion,
   // GeneratePaper,
+  ReservedQuestions,
   SwitchQuestion,
   Stats,
   GeneratePDF,
