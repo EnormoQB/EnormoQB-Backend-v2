@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const QuestionSchema = new mongoose.Schema(
   {
     question: { type: String, required: true },
-    options: { type: mongoose.Schema.Types.Mixed, required: true },
+    options: { type: mongoose.Schema.Types.Array, required: true },
     answer: { type: String, required: true },
     status: { type: String, required: true, default: 'pending' },
     standard: { type: String, required: true },
