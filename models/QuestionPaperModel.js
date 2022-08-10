@@ -9,6 +9,8 @@ const QuestionPaperSchema = new mongoose.Schema(
     userId: { type: String, required: true },
     board: { type: String, required: true },
     questionDiff: { type: mongoose.Schema.Types.Mixed, required: true },
+    status: { type: String, required: false, default: 'In Queue' },
+    PdfKey: { type: String, required: false, default: null },
     instituteName: { type: String, required: false },
     examType: { type: String, required: false },
     instructions: { type: String, required: false },
