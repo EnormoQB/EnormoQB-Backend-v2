@@ -45,6 +45,9 @@ passport.use(
                 profile.photos && profile.photos[0].value
                   ? profile.photos[0].value
                   : '',
+              questions: [],
+              questionPaper: [],
+              points: 0,
             });
 
             if (invite) {

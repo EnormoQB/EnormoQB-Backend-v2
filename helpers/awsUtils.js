@@ -21,6 +21,10 @@ const uploadFileToS3 = async (file, filename, type) => {
     .promise();
   logger.info(`${filename} uploaded`);
 
+  return filename;
+};
+
+const downloadFromS3 = (filename) => {
   const url = s3.getSignedUrl('getObject', {
     Bucket: bucket,
     Key: filename,
