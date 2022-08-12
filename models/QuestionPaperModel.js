@@ -1,13 +1,20 @@
 const mongoose = require('mongoose');
-const Question = require('./QuestionModel');
 
 const QuestionPaperSchema = new mongoose.Schema(
   {
-    questionList: { type: [], required: true },
+    name: { type: String, required: true },
+    questionList: { type: mongoose.Schema.Types.Array, required: true },
     standard: { type: String, required: true },
     subject: { type: String, required: true },
     userId: { type: String, required: true },
     board: { type: String, required: true },
+    questionDiff: { type: mongoose.Schema.Types.Mixed, required: true },
+    status: { type: String, required: false, default: 'In Queue' },
+    PdfKey: { type: String, required: false, default: null },
+    instituteName: { type: String, required: false },
+    examType: { type: String, required: false },
+    instructions: { type: String, required: false },
+    time: { type: String, required: false },
   },
   { timestamps: true },
 );

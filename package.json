@@ -1,7 +1,7 @@
 {
   "name": "enormoqb-server",
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=13.0.0"
   },
   "version": "2.0.0",
   "scripts": {
@@ -26,6 +26,7 @@
     "express": "~4.16.0",
     "express-formidable": "^1.2.0",
     "express-session": "^1.17.2",
+    "image-data-uri": "^2.0.1",
     "moment": "^2.24.0",
     "mongoose": "^5.7.6",
     "morgan": "~1.9.0",
