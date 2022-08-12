@@ -50,7 +50,7 @@ const QuestionList = async (req, res, next) => {
     if (questions.length !== 0) {
       apiResponse.successResponseWithData(res, 'Success', data);
     } else {
-      apiResponse.notFoundResponse(res, 'No data found');
+      apiResponse.successResponseWithData(res, 'No data found', []);
     }
   } catch (error) {
     logger.error('Error :', error);
@@ -135,7 +135,8 @@ const GeneratePDF = async (req, res, next) => {
     instructions,
     instituteName,
     name,
-    quesDiffDetails } = req.body;
+    quesDiffDetails,
+  } = req.body;
   // const { id } = req.body;
   // const paperData = await QuestionPaper.findById(id);
   // eslint-disable-next-line max-len
@@ -151,7 +152,7 @@ const GeneratePDF = async (req, res, next) => {
   // iterate over objects of objects quesDiffDetails to calculate marks
   let totalMarks = 0;
   Object.keys(quesDiffDetails).forEach((key) => {
-    totalMarks += (quesDiffDetails[key].marks * quesDiffDetails[key].count);
+    totalMarks += quesDiffDetails[key].marks * quesDiffDetails[key].count;
   });
   const indexing = ['A', 'B', 'C', 'D'];
   const year = new Date().getFullYear();
@@ -176,7 +177,6 @@ const GeneratePDF = async (req, res, next) => {
             { type: 'line', x1: 5, y1: 835, x2: 590, y2: 835, lineWidth: 2 }, // Bottom line
             { type: 'line', x1: 590, y1: 5, x2: 590, y2: 835, lineWidth: 2 }, // Rigth line
           ],
-
         },
       ];
     },
@@ -278,7 +278,6 @@ const GeneratePDF = async (req, res, next) => {
             { type: 'line', x1: 5, y1: 835, x2: 590, y2: 835, lineWidth: 2 }, // Bottom line
             { type: 'line', x1: 590, y1: 5, x2: 590, y2: 835, lineWidth: 2 }, // Rigth line
           ],
-
         },
       ];
     },
