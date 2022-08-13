@@ -14,7 +14,11 @@ mongoose.set('useFindAndModify', false);
 
 const ReservedQuestions = async (req, res, next) => {
   try {
-    await apiResponse.successResponseWithData(res, 'Success', reservedQuestions);
+    await apiResponse.successResponseWithData(
+      res,
+      'Success',
+      reservedQuestions,
+    );
   } catch (error) {
     logger.error('Error :', error);
     apiResponse.ErrorResponse(res, error);
@@ -86,12 +90,16 @@ const AddQuestion = async (req, res, next) => {
     } = JSON.parse(req.body.data);
 
     const questionId = new mongoose.Types.ObjectId();
+    let imageKey = null;
 
-    await uploadFileToS3(
-      req.file.buffer,
-      questionId.toString(),
-      req.file.mimetype,
-    );
+    if (req.file.buffer && req.file.mimetype) {
+      await uploadFileToS3(
+        req.file.buffer,
+        questionId.toString(),
+        req.file.mimetype,
+      );
+      imageKey = questionId.toString();
+    }
 
     const newQuestion = new Question({
       _id: questionId,
@@ -101,11 +109,12 @@ const AddQuestion = async (req, res, next) => {
       standard,
       subject,
       topic: topics,
-      imageKey: questionId.toString(),
+      imageKey,
       difficulty,
       userId,
       answerExplaination,
     });
+
     await newQuestion
       .save()
       .then(() => apiResponse.successResponse(res, 'Successfully added'))
