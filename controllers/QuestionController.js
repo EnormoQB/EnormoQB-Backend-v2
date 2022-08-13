@@ -89,10 +89,22 @@ const AddQuestion = async (req, res, next) => {
       answerExplaination,
     } = JSON.parse(req.body.data);
 
+    if (
+      standard.length < 1 ||
+      answer.length < 1 ||
+      subject.length < 1 ||
+      topics.length < 1
+    ) {
+      return apiResponse.validationErrorWithData(
+        res,
+        'Please send all the required fields',
+      );
+    }
+
     const questionId = new mongoose.Types.ObjectId();
     let imageKey = null;
 
-    if (req.file.buffer && req.file.mimetype) {
+    if (req.file) {
       await uploadFileToS3(
         req.file.buffer,
         questionId.toString(),
@@ -109,6 +121,7 @@ const AddQuestion = async (req, res, next) => {
       standard,
       subject,
       topic: topics,
+      status: 'pending',
       imageKey,
       difficulty,
       userId,
