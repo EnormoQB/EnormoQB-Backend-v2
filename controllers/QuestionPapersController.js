@@ -4,14 +4,7 @@ const apiResponse = require('../helpers/apiResponse');
 const Question = require('../models/QuestionModel');
 const logger = require('../helpers/winston');
 const QuestionPaper = require('../models/QuestionPaperModel');
-const { paperProcess } = require('../queues/index');
-
-const paperQueue = new Queue('paperQueue', {
-  defaultJobOptions: {
-    removeOnComplete: true,
-  },
-});
-paperQueue.process(paperProcess);
+const { CreatePaper } = require('../queues/index');
 
 const helperFn = async (topic, type, ans, tough, filter, idList, limit = 0) => {
   limit =
@@ -188,7 +181,6 @@ const GeneratePaperModel = async (req, res, next) => {
     });
     const paper = await newQuestionPaper
       .save()
-      // .then(() => next())
       .catch((err) => {
         logger.error('Error :', err);
         apiResponse.ErrorResponse(res, 'Error while adding Question Paper');
@@ -205,19 +197,7 @@ const GeneratePaperModel = async (req, res, next) => {
 
 const CreateNewPaper = async (req, res, next) => {
   try {
-    await paperQueue.add('hi');
-    paperQueue.on('completed', async (job, result) => {
-      const paperData = await QuestionPaper.findById(req.paperId);
-      paperData.status = 'completed';
-      paperData.PdfKey = result;
-      paperData.ansKey = result;
-      const finalList = await Promise.all(
-        paperData.questionList.map(async (item) => item._id),
-      );
-      paperData.questionList = finalList;
-      await paperData.save();
-    });
-    res.send('Paper Generated Successfully');
+    await CreatePaper(req.paperId);
     apiResponse.successResponse(res, 'Successfully added');
   } catch (error) {
     logger.error('Error :', error);
@@ -225,6 +205,7 @@ const CreateNewPaper = async (req, res, next) => {
     next(error);
   }
 };
+
 const PreviousYear = async (req, res, next) => {
   try {
     const year = new Date().getFullYear();
