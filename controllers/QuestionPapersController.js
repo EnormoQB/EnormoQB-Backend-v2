@@ -225,8 +225,23 @@ const CreateNewPaper = async (req, res, next) => {
     next(error);
   }
 };
+const PreviousYear = async (req, res, next) => {
+  try {
+    const year = new Date().getFullYear();
+    const date = new Date(year - 1, 12, 1);
+    console.log(date);
+    const question = await QuestionPaper.find({ createdAt: { $lte: date } });
+    await apiResponse.successResponseWithData(res, 'Success', question);
+  } catch (error) {
+    logger.error('Error :', error);
+    apiResponse.ErrorResponse(res, error);
+    next(error);
+  }
+};
+
 module.exports = {
   GeneratePreview,
   GeneratePaperModel,
   CreateNewPaper,
+  PreviousYear,
 };

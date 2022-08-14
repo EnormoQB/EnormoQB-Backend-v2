@@ -5,6 +5,6 @@ const router = express.Router();
 
 router.post('/preview', QuestionPapersController.GeneratePreview);
 router.post('/generatePaper', QuestionPapersController.GeneratePaperModel, QuestionPapersController.CreateNewPaper);
-// router.get('/generate', QuestionPapersController.GeneratePDF);
+router.get('/previousyear', QuestionPapersController.PreviousYear);
 
 module.exports = router;
