@@ -3,17 +3,20 @@ const QuestionPaper = require('../models/QuestionPaperModel');
 const Question = require('../models/QuestionModel');
 const { PdfProcess } = require('./generateProcess');
 
+const redisPort = process.env.REDIS_PORT || 6379;
+const redisHost = process.env.REDIS_HOST || 'localhost';
+
 const paperQueue = new Queue('paperQueue', {
-  defaultJobOptions: {
-    removeOnComplete: true,
-  },
+  redis: { port: redisPort, host: redisHost },
 });
+
+paperQueue.process(PdfProcess);
 
 paperQueue.on('completed', async (job, result) => {
   const paperData = await QuestionPaper.findById(result);
   paperData.status = 'completed';
-  paperData.PdfKey = result;
-  paperData.ansKey = result;
+  paperData.PdfKey = `${result}questionKey`;
+  paperData.ansKey = `${result}answerkey`;
   const year = new Date().getFullYear();
   const finalList = await Promise.all(
     paperData.questionList.map(async (item) => {
@@ -28,16 +31,15 @@ paperQueue.on('completed', async (job, result) => {
   await paperData.save();
 });
 
-// paperQueue.process(PdfProcess);
-
-const CreatePaper = async (id) => {
+const createPaper = async (id) => {
   try {
-    await paperQueue.add(id).then(() => {
-      console.log('added');
+    console.log(`Creating paper for ${id}`);
+    await paperQueue.add(id, {
+      attempt: 2,
     });
   } catch (err) {
     console.log(err);
   }
 };
 
-module.exports = { CreatePaper, paperQueue };
+module.exports = { createPaper, paperQueue };
