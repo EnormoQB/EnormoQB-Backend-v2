@@ -4,7 +4,7 @@ const apiResponse = require('../helpers/apiResponse');
 const Question = require('../models/QuestionModel');
 const logger = require('../helpers/winston');
 const QuestionPaper = require('../models/QuestionPaperModel');
-const { CreatePaper } = require('../queues/index');
+const { createPaper } = require('../queues/index');
 
 const helperFn = async (topic, type, ans, tough, filter, idList, limit = 0) => {
   limit =
@@ -197,7 +197,7 @@ const GeneratePaperModel = async (req, res, next) => {
 
 const CreateNewPaper = async (req, res, next) => {
   try {
-    await CreatePaper(req.paperId);
+    await createPaper(req.paperId);
     apiResponse.successResponse(res, 'Successfully added');
   } catch (error) {
     logger.error('Error :', error);

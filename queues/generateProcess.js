@@ -2,23 +2,23 @@ const { Job } = require('bull');
 const PdfMake = require('pdfmake');
 const fs = require('fs');
 const imageDataURI = require('image-data-uri');
+const mongoose = require('mongoose');
 const { uploadFileToS3, downloadFromS3 } = require('../helpers/awsUtils');
 const QuestionPaper = require('../models/QuestionPaperModel');
 
-const GeneratePDF = async (req, res, next) => {
-  const {
-    standard,
-    subject,
-    pdfData,
-    time,
-    instructions,
-    instituteName,
-    name,
-    quesDiffDetails } = req.body;
-    // const { id } = req.body;
-    // const paperData = await QuestionPaper.findById(id);
-    // eslint-disable-next-line max-len
-    // const { questionList: pdfData, standard, subject, board, instituteName, examType, instructions, time, quesDiffDetails } = paperData;
+const GeneratePDF = async (id) => {
+  // const {
+  //   standard,
+  //   subject,
+  //   pdfData,
+  //   time,
+  //   instructions,
+  //   instituteName,
+  //   name,
+  //   quesDiffDetails } = req.body;
+  const paperData = await QuestionPaper.findById(mongoose.Types.ObjectId(id));
+  // eslint-disable-next-line max-len
+  const { questionList: pdfData, standard, subject, board, instituteName, examType, instructions, time, quesDiffDetails, name } = paperData;
   const fonts = {
     Roboto: {
       normal: 'fonts/Roboto/Roboto-Regular.ttf',
@@ -202,7 +202,7 @@ const GeneratePDF = async (req, res, next) => {
   //   answerKeyId,
   //   'application/pdf',
   // );
-  // return id;
+  return id;
 };
 
 const PdfProcess = async (job, done) => {

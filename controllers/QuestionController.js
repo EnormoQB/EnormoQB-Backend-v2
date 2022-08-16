@@ -68,7 +68,6 @@ const QuestionList = async (req, res, next) => {
 };
 
 const AddQuestion = async (req, res, next) => {
-  console.log(req.body);
   try {
     const {
       standard,
@@ -117,7 +116,7 @@ const AddQuestion = async (req, res, next) => {
   }
 };
 
-const UpdateQuestion = async (req, res, next) => {
+const UpdateStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -318,7 +317,7 @@ const generatePaper = async (req, res, next) => {
 module.exports = {
   QuestionList,
   AddQuestion,
-  UpdateQuestion,
+  UpdateStatus,
   // GeneratePaper,
   ReservedQuestions,
   SwitchQuestion,

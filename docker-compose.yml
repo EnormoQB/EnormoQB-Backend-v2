@@ -2,17 +2,17 @@ version: '3'
 services:
   redis:
     image: 'redis'
+    ports:
+      - "127.0.0.1:6379:6379"
     volumes:
       - ./volumes/redis:/data
+
   app_server:
     build: .
     env_file:
       - ./.env
     restart: always
     ports:
-      - "12400-12500:8989"
+      - "12400:5000"
     depends_on:
       - redis
-
-volumes:
-  redis_data:

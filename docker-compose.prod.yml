@@ -1,15 +1,25 @@
 version: '3'
 
 services:
+  redis:
+    image: 'redis'
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - ./volumes/redis:/data
+
   app_server:
-    networks:
-      default:
+    build: .
+    env_file:
+      - ./.env
+    restart: always
     command: npm start
+    ports:
+      - "12400:5000" # port for the app server(To be fixed at deployment)
     volumes:
       - ./logs:/var/log
-    environment:
-      - MONGODB_URL=mongodb://mongo1:27017,mongo2:27018,mongo3:27019/enormoDB?retryWrites=true&w=majority
     depends_on:
+      - redis
       - mongo-setup
       - mongo1
       - mongo2
@@ -122,3 +132,7 @@ services:
     volumes:
       - ./volumes/mongodb/mongo/data3/db:/data/db # This is where your volume will persist. e.g. VOLUME-DIR = ./volumes/mongodb
       - ./volumes/mongodb/mongo/data3/configdb:/data/configdb
+
+
+
+
