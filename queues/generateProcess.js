@@ -15,7 +15,7 @@ const GeneratePDF = async (id) => {
   //   instituteName,
   //   name,
   //   quesDiffDetails } = req.body;
-  const paperData = await QuestionPaper.findById(mongoose.Types.ObjectId(id));
+  const paperData = await QuestionPaper.findById(id);
   const {
     questionList: pdfData,
     standard,
@@ -193,7 +193,7 @@ const GeneratePDF = async (id) => {
   };
   const pdfmake = new PdfMake(fonts);
   const doc = pdfmake.createPdfKitDocument(dd);
-  doc.pipe(fs.createWriteStream('document.pdf'));
+  doc.pipe(fs.createWriteStream('../document.pdf'));
   doc.end();
   // const questionKeyId = `${id.toString()}questionKey`;
   // await uploadFileToS3(
@@ -202,7 +202,7 @@ const GeneratePDF = async (id) => {
   //   'application/pdf',
   // );
   const answerPdf = pdfmake.createPdfKitDocument(answerkey);
-  answerPdf.pipe(fs.createWriteStream('answerkey.pdf'));
+  answerPdf.pipe(fs.createWriteStream('../answerkey.pdf'));
   answerPdf.end();
   // const answerKeyId = `${id.toString()}answerkey`;
   // await uploadFileToS3(
@@ -215,7 +215,8 @@ const GeneratePDF = async (id) => {
 
 const PdfProcess = async (job, done) => {
   try {
-    GeneratePDF(job.data);
+    await GeneratePDF(job.data);
+    done(null, job.data);
   } catch (err) {
     console.log(err);
   }
