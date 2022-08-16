@@ -223,104 +223,28 @@ const Stats = async (req, res, next) => {
   }
 };
 
-const generatePaper = async (req, res, next) => {
-  const query = [];
-  const ans = [];
-  let items = [];
-  const { subject, standard, topicsDistribution } = req.body;
-  // eslint-disable-next-line prefer-const
-  let { easy, medium, hard } = req.body;
-  if (subject && subject != null) {
-    query.push({
-      $match: {
-        subject: { $regex: subject, $options: 'i' },
-        standard,
-        status: { $regex: 'approved', $options: 'i' },
-      },
-    });
+const UpdateFeedback = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { feedback } = req.body;
+    await Question.findByIdAndUpdate(id, { feedback })
+      .then(() => apiResponse.successResponse(res, 'Question feedback Updated'))
+      .catch((err) => {
+        logger.error('Error :', err);
+        return apiResponse.ErrorResponse(res, 'Error while updating Question');
+      });
+  } catch (err) {
+    logger.error('Error :', err);
+    return apiResponse.ErrorResponse(res, 'Error while updating Feedback');
   }
-  let totalQuestons = easy + medium + hard;
-  const topicsPerQuestion = totalQuestons / topicsDistribution.length;
-  topicsDistribution.forEach(async (topic) => {
-    //  if(topic.cnt ==-1){
-    // eslint-disable-next-line no-param-reassign
-    topic.cnt = topicsPerQuestion;
-    // }
-  });
-
-  topicsDistribution.forEach(async (topic) => {
-    query.push({
-      $match: {
-        topic: { $in: topic.name },
-      },
-    });
-    let limit = Math.floor(Math.random() * Math.min(topic.cnt + 1, easy + 1));
-    query.push({
-      $limit: limit,
-      $match: {
-        difficulty: { $regex: 'easy', $options: 'i' },
-      },
-    });
-    console.log(query, 'easy');
-    // items = await Question.aggregate(query);
-    query.pop();
-    // ans.push(items);
-    // easy -= items.length();
-    // // eslint-disable-next-line no-param-reassign
-    // topic.cnt -= items.length();
-
-    // for medium
-    limit = Math.floor(Math.random() * Math.min(topic.cnt, medium));
-    query.push({
-      $limit: limit,
-      $match: {
-        difficulty: { $regex: 'medium', $options: 'i' },
-      },
-    });
-    // items = await Question.aggregate(query);
-    console.log(query, 'med');
-    query.pop();
-    // ans.push(items);
-    // medium -= items.length();
-    // // eslint-disable-next-line no-param-reassign
-    // topic.cnt -= items.length();
-
-    // for hard
-    limit = Math.floor(Math.random() * Math.min(topic.cnt, hard));
-    query.push({
-      $limit: limit,
-      $match: {
-        difficulty: { $regex: 'hard', $options: 'i' },
-      },
-    });
-    items = await Question.aggregate(query);
-    console.log(query, 'hard');
-    query.pop();
-    ans.push(items);
-    hard -= items.length();
-    // eslint-disable-next-line no-param-reassign
-    topic.cnt -= items.length();
-    query.pop();
-  });
-  totalQuestons -= ans.length;
-  if (totalQuestons > 0) {
-    query.pop();
-    query.pop();
-    query.push({
-      $limit: totalQuestons,
-    });
-    items = await Question.aggregate(query);
-    ans.push(items);
-  }
-  res.send(ans);
 };
 
 module.exports = {
   QuestionList,
   AddQuestion,
   UpdateStatus,
-  // GeneratePaper,
   ReservedQuestions,
   SwitchQuestion,
   Stats,
+  UpdateFeedback,
 };
