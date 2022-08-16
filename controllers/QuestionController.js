@@ -227,7 +227,7 @@ const UpdateFeedback = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { feedback } = req.body;
-    await Question.findByIdAndUpdate(id, { feedback })
+    await Question.findByIdAndUpdate(id, { feedback, status: 'rejected' })
       .then(() => apiResponse.successResponse(res, 'Question feedback Updated'))
       .catch((err) => {
         logger.error('Error :', err);
