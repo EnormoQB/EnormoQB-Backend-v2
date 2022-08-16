@@ -210,9 +210,18 @@ const PreviousYear = async (req, res, next) => {
   try {
     const year = new Date().getFullYear();
     const date = new Date(year - 1, 12, 1);
-    console.log(date);
-    const question = await QuestionPaper.find({ createdAt: { $lte: date } });
-    await apiResponse.successResponseWithData(res, 'Success', question);
+    const paper = await QuestionPaper.find({ createdAt: { $lte: date } });
+    await apiResponse.successResponseWithData(res, 'Success', paper);
+  } catch (error) {
+    logger.error('Error :', error);
+    apiResponse.ErrorResponse(res, error);
+    next(error);
+  }
+};
+const UserGeneratedPaper = async (req, res, next) => {
+  try {
+    const paper = await QuestionPaper.find({ userId: req.user._id });
+    await apiResponse.successResponseWithData(res, 'Success', paper);
   } catch (error) {
     logger.error('Error :', error);
     apiResponse.ErrorResponse(res, error);
@@ -225,4 +234,5 @@ module.exports = {
   GeneratePaperModel,
   CreateNewPaper,
   PreviousYear,
+  UserGeneratedPaper,
 };
