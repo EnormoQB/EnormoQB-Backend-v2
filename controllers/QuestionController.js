@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const fetch = require('node-fetch');
 const apiResponse = require('../helpers/apiResponse');
 const Question = require('../models/QuestionModel');
 const logger = require('../helpers/winston');
@@ -39,6 +40,7 @@ const QuestionList = async (req, res, next) => {
     };
 
     const questions = await Question.find(filters)
+      .populate('similarQuestions')
       .sort({ updatedAt: -1 })
       .skip(skip)
       .limit(perPage)
@@ -84,6 +86,25 @@ const AddQuestion = async (req, res, next) => {
 
     const questionId = new mongoose.Types.ObjectId();
 
+    const filters = {
+      ...(standard ? { standard: { $regex: standard, $options: 'i' } } : {}),
+      ...(subject ? { subject: { $regex: subject, $options: 'i' } } : {}),
+      ...(topics && topics.length !== 0 ? { topic: { $in: [topics] } } : {}),
+      status: { $in: ['pending', 'approved'] },
+    };
+
+    const questions = await Question.find(filters).exec();
+
+    const response = await fetch(process.env.SIMILARITY_API, {
+      method: 'POST',
+      body: JSON.stringify({ questions, target: question }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    const similarQuestionsResponse = JSON.parse(await response.text());
+
+    const similarQuestionsID = similarQuestionsResponse.map((item) => item._id);
+
     await uploadFileToS3(
       req.file.buffer,
       questionId.toString(),
@@ -102,10 +123,19 @@ const AddQuestion = async (req, res, next) => {
       difficulty,
       userId,
       answerExplaination,
+      similarQuestions: similarQuestionsID,
     });
     await newQuestion
       .save()
-      .then(() => apiResponse.successResponse(res, 'Successfully added'))
+      .then(() => {
+        similarQuestionsResponse.forEach((item) => {
+          const { similarQuestions = [] } = item;
+          similarQuestions.push(questionId);
+          item.similarQuestions = similarQuestions;
+          Question.findByIdAndUpdate(item._id, item).exec();
+        });
+        apiResponse.successResponse(res, 'Successfully added');
+      })
       .catch((err) => {
         logger.error('Error :', err);
         return apiResponse.ErrorResponse(res, 'Error while adding Question');
