@@ -9,8 +9,6 @@ services:
     env_file:
       - ./.env
     restart: always
-    ports:
-      - "12400-12500:8989"
     depends_on:
       - redis
 

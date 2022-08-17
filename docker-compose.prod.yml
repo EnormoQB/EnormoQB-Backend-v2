@@ -4,6 +4,8 @@ services:
   app_server:
     networks:
       default:
+    ports:
+      - "12400-12500:8989"
     command: npm start
     volumes:
       - ./logs:/var/log

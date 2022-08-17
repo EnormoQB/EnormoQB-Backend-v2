@@ -15,6 +15,7 @@ const QuestionSchema = new mongoose.Schema(
     imageKey: { type: String, required: false, default: null },
     answerExplanation: { type: String, required: false, default: null },
     feedback: { type: String, required: false, default: null },
+    similarQuestions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Question' }],
   },
   { timestamps: true },
 );

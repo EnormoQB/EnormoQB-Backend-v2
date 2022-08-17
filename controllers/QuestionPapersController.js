@@ -1,8 +1,10 @@
 const moment = require('moment');
+const Queue = require('bull');
 const apiResponse = require('../helpers/apiResponse');
 const Question = require('../models/QuestionModel');
 const logger = require('../helpers/winston');
 const QuestionPaper = require('../models/QuestionPaperModel');
+const { createPaper } = require('../queues/index');
 
 const helperFn = async (topic, type, ans, tough, filter, idList, limit = 0) => {
   limit =
@@ -128,18 +130,32 @@ const generatePaperName = (institute, standard, examType, board, subject) => {
   return `${board} ${standard} ${subject} ${date}`;
 };
 
-const CreateNewPaper = async (req, res, next) => {
+const GeneratePaperModel = async (req, res, next) => {
   try {
+    // const {
+    //   instituteName,
+    //   standard,
+    //   subject,
+    //   examType,
+    //   questionList,
+    //   board,
+    //   instructions,
+    //   time,
+    //   quesDiffDetails,
+    //   userId,
+    // } = JSON.parse(req.body.data);
     const {
       instituteName,
       standard,
       subject,
       examType,
+      questionList,
       board,
       instructions,
       time,
       quesDiffDetails,
-    } = JSON.parse(req.body.data);
+      userId,
+    } = req.body;
 
     const name = generatePaperName(
       instituteName,
@@ -152,8 +168,9 @@ const CreateNewPaper = async (req, res, next) => {
     const newQuestionPaper = new QuestionPaper({
       name,
       instituteName,
-      userId: req.user._id,
-      questionList: [],
+      // userId: req.user._id,
+      userId,
+      questionList,
       standard,
       subject,
       examType,
@@ -162,14 +179,49 @@ const CreateNewPaper = async (req, res, next) => {
       time,
       quesDiffDetails,
     });
-    await newQuestionPaper
+    const paper = await newQuestionPaper
       .save()
-      .then(() => next())
       .catch((err) => {
         logger.error('Error :', err);
         apiResponse.ErrorResponse(res, 'Error while adding Question Paper');
         next(err);
       });
+    req.paperId = paper._id;
+    next();
+  } catch (error) {
+    logger.error('Error :', error);
+    apiResponse.ErrorResponse(res, error);
+    next(error);
+  }
+};
+
+const CreateNewPaper = async (req, res, next) => {
+  try {
+    await createPaper(req.paperId);
+    apiResponse.successResponse(res, 'Successfully added');
+  } catch (error) {
+    logger.error('Error :', error);
+    apiResponse.ErrorResponse(res, error);
+    next(error);
+  }
+};
+
+const PreviousYear = async (req, res, next) => {
+  try {
+    const year = new Date().getFullYear();
+    const date = new Date(year - 1, 12, 1);
+    const paper = await QuestionPaper.find({ createdAt: { $lte: date } });
+    await apiResponse.successResponseWithData(res, 'Success', paper);
+  } catch (error) {
+    logger.error('Error :', error);
+    apiResponse.ErrorResponse(res, error);
+    next(error);
+  }
+};
+const UserGeneratedPaper = async (req, res, next) => {
+  try {
+    const paper = await QuestionPaper.find({ userId: req.user._id });
+    await apiResponse.successResponseWithData(res, 'Success', paper);
   } catch (error) {
     logger.error('Error :', error);
     apiResponse.ErrorResponse(res, error);
@@ -179,5 +231,8 @@ const CreateNewPaper = async (req, res, next) => {
 
 module.exports = {
   GeneratePreview,
+  GeneratePaperModel,
   CreateNewPaper,
+  PreviousYear,
+  UserGeneratedPaper,
 };

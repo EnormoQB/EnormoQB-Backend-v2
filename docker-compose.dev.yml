@@ -3,5 +3,8 @@ version: '3'
 services:
   app_server:
     command: npm run dev
+    ports:
+      - "5000:5000"
     environment:
       - NODE_ENV=development
+      - REDIS_HOST=redis
