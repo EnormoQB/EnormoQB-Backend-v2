@@ -6,7 +6,6 @@ const UserScehema = new mongoose.Schema(
     email: { required: true, type: String },
     googleId: { required: true, type: String },
     userType: { required: true, type: String },
-    privileges: { required: true, type: [String] },
     image: { required: true, type: String },
     questions: { type: mongoose.Schema.Types.Array, required: false },
     questionPaper: { type: mongoose.Schema.Types.Array, required: false },
