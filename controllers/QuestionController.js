@@ -166,15 +166,29 @@ const UpdateStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    if (status === 'approved') {
-      await User.findByIdAndUpdate(req.user._id, { $inc: { points: 10 } });
+    const question = await Question.findById(id);
+    if (status === 'approved' && question.status === 'pending') {
+      question.status = status;
+      await question.save();
+      await User.findByIdAndUpdate(id, { $inc: { points: 10 } })
+        .then(() => apiResponse.successResponse(res, 'Question Status Updated'))
+        .catch((err) => {
+          logger.error('Error :', err);
+          return apiResponse.ErrorResponse(res, 'Error while updating points');
+        });
+    } else if (status === 'rejected' && question.status === 'pending') {
+      const { feedback } = req.body;
+      question.status = status;
+      question.feedback = feedback;
+      await question.save()
+        .then(() => apiResponse.successResponse(res, 'Question feedback Updated'))
+        .catch((err) => {
+          logger.error('Error :', err);
+          return apiResponse.ErrorResponse(res, 'Error while updating Question');
+        });
+    } else {
+      return apiResponse.validationErrorWithData(res, 'Invalid status');
     }
-    await Question.findByIdAndUpdate(id, { status })
-      .then(() => apiResponse.successResponse(res, 'Question Status Updated'))
-      .catch((err) => {
-        logger.error('Error :', err);
-        return apiResponse.ErrorResponse(res, 'Error while updating Question');
-      });
   } catch (error) {
     logger.error('Error :', error);
     apiResponse.ErrorResponse(res, error);
@@ -271,21 +285,14 @@ const Stats = async (req, res, next) => {
   }
 };
 
-const UpdateFeedback = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { feedback } = req.body;
-    await Question.findByIdAndUpdate(id, { feedback, status: 'rejected' })
-      .then(() => apiResponse.successResponse(res, 'Question feedback Updated'))
-      .catch((err) => {
-        logger.error('Error :', err);
-        return apiResponse.ErrorResponse(res, 'Error while updating Question');
-      });
-  } catch (err) {
-    logger.error('Error :', err);
-    return apiResponse.ErrorResponse(res, 'Error while updating Feedback');
-  }
-};
+// const questionsPerTopic = async (req, res, next) => {
+//   try {
+
+//   } catch (err) {
+//     logger.error('Error :', err);
+//     return apiResponse.ErrorResponse(res, 'Error while getting Questions');
+//   }
+// };
 
 module.exports = {
   QuestionList,
@@ -294,5 +301,4 @@ module.exports = {
   ReservedQuestions,
   SwitchQuestion,
   Stats,
-  UpdateFeedback,
 };
