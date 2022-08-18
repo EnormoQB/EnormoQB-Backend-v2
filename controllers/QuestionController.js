@@ -11,11 +11,7 @@ mongoose.set('useFindAndModify', false);
 
 const ReservedQuestions = async (req, res, next) => {
   try {
-    await apiResponse.successResponseWithData(
-      res,
-      'Success',
-      reservedQuestions,
-    );
+    await apiResponse.successResponseWithData(res, 'Success', reservedQuestions);
   } catch (error) {
     logger.error('Error :', error);
     apiResponse.ErrorResponse(res, error);
@@ -24,9 +20,9 @@ const ReservedQuestions = async (req, res, next) => {
 };
 const QuestionList = async (req, res, next) => {
   try {
-    const { standard, difficulty, subject, status, userId, topics, page } =
+    const { standard, difficulty, subject, status, topics, page } =
       req.query;
-
+    const { id } = req.user;
     const currentPage = page ? parseInt(page, 10) : 1;
     const perPage = 15;
     const skip = (currentPage - 1) * perPage;
@@ -38,7 +34,7 @@ const QuestionList = async (req, res, next) => {
         : {}),
       ...(subject ? { subject: { $regex: subject, $options: 'i' } } : {}),
       ...(status ? { status: { $regex: status, $options: 'i' } } : {}),
-      ...(userId ? { userId } : {}),
+      ...(req.user.userType === 'member' || req.userType === 'developer' ? { userId: id } : {}),
       ...(topics && topics.length !== 0 ? { topic: { $in: [topics] } } : {}),
     };
 
@@ -63,7 +59,7 @@ const QuestionList = async (req, res, next) => {
     if (questions.length !== 0) {
       apiResponse.successResponseWithData(res, 'Success', data);
     } else {
-      apiResponse.successResponseWithData(res, 'No data found', []);
+      apiResponse.notFoundResponse(res, 'No data found');
     }
   } catch (error) {
     logger.error('Error :', error);
@@ -138,14 +134,12 @@ const AddQuestion = async (req, res, next) => {
       standard,
       subject,
       topic: topics,
-      status: 'pending',
       imageKey,
       difficulty,
       userId,
       answerExplaination,
       similarQuestions: similarQuestionsID,
     });
-
     await newQuestion
       .save()
       .then(() => {
@@ -219,22 +213,22 @@ const SwitchQuestion = async (req, res, next) => {
 
 const Stats = async (req, res, next) => {
   try {
-    // const { userId } = req.query;
-    const { id } = req.user._id;
+    const { id } = req.user;
+    console.log(id);
     const total = await Question.countDocuments({
-      ...(req.user.userType === 'member' || req.userType === 'developer' ? { id } : {}),
+      ...(req.user.userType === 'member' || req.userType === 'developer' ? { userId: id } : {}),
     });
     const approved = await Question.countDocuments({
       status: { $regex: 'approved', $options: 'i' },
-      ...(req.user.userType === 'member' || req.userType === 'developer' ? { id } : {}),
+      ...(req.user.userType === 'member' || req.userType === 'developer' ? { userId: id } : {}),
     });
     const pending = await Question.countDocuments({
       status: { $regex: 'pending', $options: 'i' },
-      ...(req.user.userType === 'member' || req.userType === 'developer' ? { id } : {}),
+      ...(req.user.userType === 'member' || req.userType === 'developer' ? { userId: id } : {}),
     });
     const rejected = await Question.countDocuments({
       status: { $regex: 'rejected', $options: 'i' },
-      ...(req.user.userType === 'member' || req.userType === 'developer' ? { id } : {}),
+      ...(req.user.userType === 'member' || req.userType === 'developer' ? { userId: id } : {}),
     });
     // number of question contributed per day
     const contribute = await Question.aggregate([

@@ -4,6 +4,8 @@ services:
     image: 'redis'
     volumes:
       - ./volumes/redis:/data
+  text_similarity:
+    image: 'dishabhardwaj/textsimilarity_app:latest'
   app_server:
     build: .
     env_file:
@@ -11,6 +13,7 @@ services:
     restart: always
     depends_on:
       - redis
+      - text_similarity
 
 volumes:
   redis_data:
