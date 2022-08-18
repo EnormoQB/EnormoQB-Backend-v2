@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-const main = async () => {
+const main = async (mailOptions) => {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -14,16 +14,9 @@ const main = async () => {
     },
   });
 
-  const mailOptions = {
-    from: '"EnormoQB" <enormoqb@gmail.com>', // sender address
-    to: 'apoorvd14@gmail.com, ankitoct01@gmail.com', // list of receivers comma separated
-    subject: 'Nodemailer Testing', // Subject line
-    html: '<p>Nodemailer is up!😎</p>', // html body
-  };
-
   const info = await transporter.sendMail(mailOptions);
 
   console.log('Email sent successfully', info.messageId);
 };
 
-main().catch(console.error);
+module.exports = main;
