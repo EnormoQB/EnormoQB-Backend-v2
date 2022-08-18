@@ -11,7 +11,11 @@ mongoose.set('useFindAndModify', false);
 
 const ReservedQuestions = async (req, res, next) => {
   try {
-    await apiResponse.successResponseWithData(res, 'Success', reservedQuestions);
+    await apiResponse.successResponseWithData(
+      res,
+      'Success',
+      reservedQuestions,
+    );
   } catch (error) {
     logger.error('Error :', error);
     apiResponse.ErrorResponse(res, error);
@@ -59,7 +63,7 @@ const QuestionList = async (req, res, next) => {
     if (questions.length !== 0) {
       apiResponse.successResponseWithData(res, 'Success', data);
     } else {
-      apiResponse.notFoundResponse(res, 'No data found');
+      apiResponse.successResponseWithData(res, 'No data found', []);
     }
   } catch (error) {
     logger.error('Error :', error);
@@ -83,7 +87,29 @@ const AddQuestion = async (req, res, next) => {
       answerExplaination,
     } = JSON.parse(req.body.data);
 
+    if (
+      standard.length < 1 ||
+      answer.length < 1 ||
+      subject.length < 1 ||
+      topics.length < 1
+    ) {
+      return apiResponse.validationErrorWithData(
+        res,
+        'Please send all the required fields',
+      );
+    }
+
     const questionId = new mongoose.Types.ObjectId();
+    let imageKey = null;
+
+    if (req.file) {
+      await uploadFileToS3(
+        req.file.buffer,
+        questionId.toString(),
+        req.file.mimetype,
+      );
+      imageKey = questionId.toString();
+    }
 
     const filters = {
       ...(standard ? { standard: { $regex: standard, $options: 'i' } } : {}),
@@ -104,12 +130,6 @@ const AddQuestion = async (req, res, next) => {
 
     const similarQuestionsID = similarQuestionsResponse.map((item) => item._id);
 
-    await uploadFileToS3(
-      req.file.buffer,
-      questionId.toString(),
-      req.file.mimetype,
-    );
-
     const newQuestion = new Question({
       _id: questionId,
       question,
@@ -118,12 +138,14 @@ const AddQuestion = async (req, res, next) => {
       standard,
       subject,
       topic: topics,
-      imageKey: questionId.toString(),
+      status: 'pending',
+      imageKey,
       difficulty,
       userId,
       answerExplaination,
       similarQuestions: similarQuestionsID,
     });
+
     await newQuestion
       .save()
       .then(() => {
