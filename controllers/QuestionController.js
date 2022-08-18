@@ -6,7 +6,6 @@ const logger = require('../helpers/winston');
 const { uploadFileToS3, downloadFromS3 } = require('../helpers/awsUtils');
 const User = require('../models/UserModel');
 const reservedQuestions = require('../helpers/reservedQuestion');
-// const User = require('../models/UserModel');
 
 mongoose.set('useFindAndModify', false);
 
@@ -198,19 +197,22 @@ const SwitchQuestion = async (req, res, next) => {
 
 const Stats = async (req, res, next) => {
   try {
-    const { userId } = req.query;
-    const total = await Question.countDocuments();
+    // const { userId } = req.query;
+    const { id } = req.user._id;
+    const total = await Question.countDocuments({
+      ...(req.user.userType === 'member' || req.userType === 'developer' ? { id } : {}),
+    });
     const approved = await Question.countDocuments({
       status: { $regex: 'approved', $options: 'i' },
-      ...(userId ? { userId } : {}),
+      ...(req.user.userType === 'member' || req.userType === 'developer' ? { id } : {}),
     });
     const pending = await Question.countDocuments({
       status: { $regex: 'pending', $options: 'i' },
-      ...(userId ? { userId } : {}),
+      ...(req.user.userType === 'member' || req.userType === 'developer' ? { id } : {}),
     });
     const rejected = await Question.countDocuments({
       status: { $regex: 'rejected', $options: 'i' },
-      ...(userId ? { userId } : {}),
+      ...(req.user.userType === 'member' || req.userType === 'developer' ? { id } : {}),
     });
     // number of question contributed per day
     const contribute = await Question.aggregate([
