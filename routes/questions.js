@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.get('/reserved', QuestionController.ReservedQuestions);
 router.get('/list', QuestionController.QuestionList);
+router.get('/topicQuestion', QuestionController.QuestionsPerTopic);
 router.post('/add', parseReqForImage, QuestionController.AddQuestion);
 router.patch('/update/:id', QuestionController.UpdateStatus);
 router.get('/switch', QuestionController.SwitchQuestion);

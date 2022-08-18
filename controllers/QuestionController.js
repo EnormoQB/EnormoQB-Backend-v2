@@ -6,6 +6,7 @@ const logger = require('../helpers/winston');
 const { uploadFileToS3, downloadFromS3 } = require('../helpers/awsUtils');
 const User = require('../models/UserModel');
 const reservedQuestions = require('../helpers/reservedQuestion');
+const subjects = require('../helpers/subjectsData');
 
 mongoose.set('useFindAndModify', false);
 
@@ -285,14 +286,34 @@ const Stats = async (req, res, next) => {
   }
 };
 
-// const questionsPerTopic = async (req, res, next) => {
-//   try {
-
-//   } catch (err) {
-//     logger.error('Error :', err);
-//     return apiResponse.ErrorResponse(res, 'Error while getting Questions');
-//   }
-// };
+const QuestionsPerTopic = async (req, res, next) => {
+  try {
+    // let ans = {};
+    const topics = [];
+    await Object.entries(subjects).forEach(([key, val]) => {
+      Object.entries(val).forEach(([key2, val2]) => {
+        Object.entries(val2).forEach(([subject, topic]) => {
+          topic.forEach(async (t) => {
+            topics.push({ standard: key2, subject, topic: t });
+          });
+        });
+      });
+    });
+    const ans = [];
+    let cnt = 0;
+    topics.forEach(async (t) => {
+      const count = await Question.countDocuments({ topic: { $in: [t.topic] } });
+      ans.push({ ...t, count });
+      cnt += 1;
+      if (cnt === topics.length) {
+        await apiResponse.successResponseWithData(res, 'Success', ans);
+      }
+    });
+  } catch (err) {
+    logger.error('Error :', err);
+    return apiResponse.ErrorResponse(res, 'Error while getting Questions');
+  }
+};
 
 module.exports = {
   QuestionList,
@@ -301,4 +322,5 @@ module.exports = {
   ReservedQuestions,
   SwitchQuestion,
   Stats,
+  QuestionsPerTopic,
 };

@@ -12,6 +12,6 @@ const app = express();
 app.use('/questions/', QuestionsRouter);
 app.use('/questionPapers/', QuestionPapersRouter);
 app.use('/assets/', AssetsRouter);
-app.use('/subjectsData', SubjectRouter);
+app.use('/subjectsData/', SubjectRouter);
 
 module.exports = app;
