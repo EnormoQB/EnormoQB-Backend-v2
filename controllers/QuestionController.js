@@ -290,7 +290,7 @@ const QuestionsPerTopic = async (req, res, next) => {
   try {
     // let ans = {};
     const topics = [];
-    await Object.entries(subjects).forEach(([key, val]) => {
+    Object.entries(subjects).forEach(([key, val]) => {
       Object.entries(val).forEach(([key2, val2]) => {
         Object.entries(val2).forEach(([subject, topic]) => {
           topic.forEach(async (t) => {
