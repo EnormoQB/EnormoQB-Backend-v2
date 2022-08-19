@@ -191,8 +191,7 @@ const PreviousYear = async (req, res, next) => {
       ...(standard ? { standard: { $regex: standard, $options: 'i' } } : {}),
       ...(subject ? { subject: { $regex: subject, $options: 'i' } } : {}),
       ...(board ? { board: { $regex: board, $options: 'i' } } : {}),
-      ...(req.user.userType === 'member' ? { createdAt: { $lte: date } } : {}),
-      ...(req.user.userType === 'admin' ? { userId: req.user._id } : {}),
+      ...({ createdAt: { $lte: date } }),
     };
     const paper = await QuestionPaper.find(filters);
     await apiResponse.successResponseWithData(res, 'Success', paper);
@@ -204,7 +203,14 @@ const PreviousYear = async (req, res, next) => {
 };
 const UserGeneratedPaper = async (req, res, next) => {
   try {
-    const paper = await QuestionPaper.find({ userId: req.user._id });
+    const { standard, subject, board } = req.query;
+    const filters = {
+      ...(standard ? { standard: { $regex: standard, $options: 'i' } } : {}),
+      ...(subject ? { subject: { $regex: subject, $options: 'i' } } : {}),
+      ...(board ? { board: { $regex: board, $options: 'i' } } : {}),
+      ...({ userId: req.user._id }),
+    };
+    const paper = await QuestionPaper.find(filters);
     await apiResponse.successResponseWithData(res, 'Success', paper);
   } catch (error) {
     logger.error('Error :', error);
