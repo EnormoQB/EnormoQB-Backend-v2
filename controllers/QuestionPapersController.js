@@ -132,18 +132,6 @@ const generatePaperName = (institute, standard, examType, board, subject) => {
 
 const GeneratePaperModel = async (req, res, next) => {
   try {
-    // const {
-    //   instituteName,
-    //   standard,
-    //   subject,
-    //   examType,
-    //   questionList,
-    //   board,
-    //   instructions,
-    //   time,
-    //   quesDiffDetails,
-    //   userId,
-    // } = JSON.parse(req.body.data);
     const {
       instituteName,
       standard,
@@ -179,25 +167,13 @@ const GeneratePaperModel = async (req, res, next) => {
       time,
       quesDiffDetails,
     });
-    const paper = await newQuestionPaper
-      .save()
-      .catch((err) => {
-        logger.error('Error :', err);
-        apiResponse.ErrorResponse(res, 'Error while adding Question Paper');
-        next(err);
-      });
-    req.paperId = paper._id;
-    next();
-  } catch (error) {
-    logger.error('Error :', error);
-    apiResponse.ErrorResponse(res, error);
-    next(error);
-  }
-};
+    const paper = await newQuestionPaper.save().catch((err) => {
+      logger.error('Error :', err);
+      apiResponse.ErrorResponse(res, 'Error while adding Question Paper');
+      next(err);
+    });
 
-const CreateNewPaper = async (req, res, next) => {
-  try {
-    await createPaper(req.paperId);
+    await createPaper(paper._id);
     apiResponse.successResponse(res, 'Successfully added');
   } catch (error) {
     logger.error('Error :', error);
@@ -232,7 +208,6 @@ const UserGeneratedPaper = async (req, res, next) => {
 module.exports = {
   GeneratePreview,
   GeneratePaperModel,
-  CreateNewPaper,
   PreviousYear,
   UserGeneratedPaper,
 };

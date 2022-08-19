@@ -206,7 +206,7 @@ const SwitchQuestion = async (req, res, next) => {
       .exec();
 
     if (items.length === 0) {
-      apiResponse.notFoundResponse(res, 'No data found');
+      apiResponse.successResponseWithData(res, 'No data found', {});
     } else {
       const result = items[Math.floor(Math.random() * items.length)];
       await apiResponse.successResponseWithData(res, 'Success', result);
