@@ -116,18 +116,18 @@ const GeneratePreview = async (req, res, next) => {
 const generatePaperName = (institute, standard, examType, board, subject) => {
   const date = moment().format('DD-MM-YYYY');
   if (institute && examType && standard && subject) {
-    return `${institute} ${examType} ${date}`;
+    return `${institute} | ${examType} | ${date}`;
   }
 
   if (institute && !examType && standard && subject) {
-    return `${institute} ${board} ${date}`;
+    return `${institute} | ${board} | ${date}`;
   }
 
   if (institute && standard && subject) {
-    return `${institute} ${standard} ${subject} ${date}`;
+    return `${institute} | ${standard} | ${subject} | ${date}`;
   }
 
-  return `${board} ${standard} ${subject} ${date}`;
+  return `${board} | ${standard} | ${subject} | ${date}`;
 };
 
 const GeneratePaperModel = async (req, res, next) => {
