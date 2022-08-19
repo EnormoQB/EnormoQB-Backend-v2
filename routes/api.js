@@ -3,6 +3,7 @@ const QuestionsRouter = require('./questions');
 const QuestionPapersRouter = require('./questionPapers');
 const AssetsRouter = require('./assets');
 const SubjectRouter = require('./subject');
+const MailRouter = require('./mail');
 
 const { checkAuthentication } = require('../middlewares');
 
@@ -13,5 +14,6 @@ app.use('/questions/', QuestionsRouter);
 app.use('/questionPapers/', QuestionPapersRouter);
 app.use('/assets/', AssetsRouter);
 app.use('/subjectsData/', SubjectRouter);
+app.use('/mail/', MailRouter);
 
 module.exports = app;

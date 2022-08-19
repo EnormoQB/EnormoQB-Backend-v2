@@ -49,9 +49,7 @@ paperQueue.on('failed', (job, err) => {
 const createPaper = async (id) => {
   try {
     console.log(`Creating paper for ${id}`);
-    await paperQueue.add(id, {
-      attempt: 2,
-    });
+    await paperQueue.add(id, { attempt: 2 });
   } catch (err) {
     console.log(err);
   }

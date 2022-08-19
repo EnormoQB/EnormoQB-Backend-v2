@@ -4,7 +4,7 @@ const QuestionPapersController = require('../controllers/QuestionPapersControlle
 const router = express.Router();
 
 router.post('/preview', QuestionPapersController.GeneratePreview);
-router.post('/generatePaper', QuestionPapersController.GeneratePaperModel, QuestionPapersController.CreateNewPaper);
+router.post('/generatePaper', QuestionPapersController.GeneratePaperModel);
 router.get('/previousyear', QuestionPapersController.PreviousYear);
 router.get('/userpapers', QuestionPapersController.UserGeneratedPaper);
 
