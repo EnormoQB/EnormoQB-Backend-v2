@@ -166,8 +166,9 @@ const AddQuestion = async (req, res, next) => {
 const UpdateStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, userId } = req.body;
 
+    const level = { easy: 2, medium: 3, hard: 4 };
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     const question = await Question.findById(id);
     const message = { text: '', icon: '', date: new Date().toLocaleDateString('en-GB', options) };
@@ -179,13 +180,14 @@ const UpdateStatus = async (req, res, next) => {
       message.icon = 'check';
 
       const user = await User.findById(req.user._id);
+      // const user = await User.findById(userId);
 
       if (user.history) user.history.push(message);
       else user.history = [message];
 
-      const pointsMssg = { text: 'You earned 10 points', icon: 'up', date: new Date().toLocaleDateString('en-GB', options) };
+      const pointsMssg = { text: `You earned ${level[question.difficulty]} points`, icon: 'up', date: new Date().toLocaleDateString('en-GB', options) };
       user.history.push(pointsMssg);
-      user.points += 10;
+      user.points += level[question.difficulty];
 
       await question.save()
         .then(() => {})
@@ -209,6 +211,7 @@ const UpdateStatus = async (req, res, next) => {
       message.icon = 'reject';
 
       const user = await User.findById(req.user._id);
+      // const user = await User.findById(userId);
 
       if (user.history) user.history.push(message);
       else user.history = [message];
@@ -327,22 +330,13 @@ const Stats = async (req, res, next) => {
 
 const QuestionsPerTopic = async (req, res, next) => {
   try {
-    // let ans = {};
-    const topics = [];
-    Object.entries(subjects).forEach(([key, val]) => {
-      Object.entries(val).forEach(([key2, val2]) => {
-        Object.entries(val2).forEach(([subject, topic]) => {
-          topic.forEach(async (t) => {
-            topics.push({ standard: key2, subject, topic: t });
-          });
-        });
-      });
-    });
+    const { standard, subject } = req.query;
+    const topics = subjects.subjects[standard][subject];
     const ans = [];
     let cnt = 0;
-    topics.forEach(async (t) => {
-      const count = await Question.countDocuments({ topic: { $in: [t.topic] } });
-      ans.push({ ...t, count });
+    topics.forEach(async (topic) => {
+      const count = await Question.countDocuments({ topic: { $in: [topic] } });
+      ans.push({ standard, subject, topic, count });
       cnt += 1;
       if (cnt === topics.length) {
         await apiResponse.successResponseWithData(res, 'Success', ans);
