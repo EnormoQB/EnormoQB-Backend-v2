@@ -357,7 +357,7 @@ const QuestionsPerTopic = async (req, res, next) => {
     const ans = [];
     let cnt = 0;
     topics.forEach(async (topic) => {
-      const count = await Question.countDocuments({ topic: { $in: [topic] } });
+      const count = await Question.countDocuments({ topic: { $in: [topic] }, status: { $regex: 'approved', $options: 'i' } });
       ans.push({ standard, subject, topic, count });
       cnt += 1;
       if (cnt === topics.length) {
@@ -370,6 +370,22 @@ const QuestionsPerTopic = async (req, res, next) => {
   }
 };
 
+const DeleteQuestion = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const question = await Question.findById(id);
+    if (question.status !== 'approved') {
+      await Question.findByIdAndDelete(id)
+        .then(() => apiResponse.successResponse(res, 'Question deleted successfully'));
+    } else {
+      return apiResponse.validationErrorWithData(res, 'Approved question cannot be deleted');
+    }
+  } catch (err) {
+    logger.error('Error :', err);
+    return apiResponse.ErrorResponse(res, 'Error while deleting Question');
+  }
+};
+
 module.exports = {
   QuestionList,
   AddQuestion,
@@ -378,4 +394,5 @@ module.exports = {
   SwitchQuestion,
   Stats,
   QuestionsPerTopic,
+  DeleteQuestion,
 };
