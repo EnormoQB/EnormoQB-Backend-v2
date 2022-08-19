@@ -167,11 +167,34 @@ const UpdateStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
+
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
     const question = await Question.findById(id);
+    const message = { text: '', icon: '', date: new Date().toLocaleDateString('en-GB', options) };
+
     if (status === 'approved' && question.status === 'pending') {
       question.status = status;
-      await question.save();
-      await User.findByIdAndUpdate(id, { $inc: { points: 10 } })
+
+      message.text = 'Your question has been approved';
+      message.icon = 'check';
+
+      const user = await User.findById(req.user._id);
+
+      if (user.history) user.history.push(message);
+      else user.history = [message];
+
+      const pointsMssg = { text: 'You earned 10 points', icon: 'up', date: new Date().toLocaleDateString('en-GB', options) };
+      user.history.push(pointsMssg);
+      user.points += 10;
+
+      await question.save()
+        .then(() => {})
+        .catch((err) => {
+          logger.error('Error :', err);
+          return apiResponse.ErrorResponse(res, 'Error while updating Question');
+        });
+
+      await user.save()
         .then(() => apiResponse.successResponse(res, 'Question Status Updated'))
         .catch((err) => {
           logger.error('Error :', err);
@@ -181,6 +204,22 @@ const UpdateStatus = async (req, res, next) => {
       const { feedback } = req.body;
       question.status = status;
       question.feedback = feedback;
+
+      message.text = 'Your question has been rejected';
+      message.icon = 'reject';
+
+      const user = await User.findById(req.user._id);
+
+      if (user.history) user.history.push(message);
+      else user.history = [message];
+
+      await user.save()
+        .then(() => {})
+        .catch((err) => {
+          logger.error('Error :', err);
+          return apiResponse.ErrorResponse(res, 'Error while updating Question');
+        });
+
       await question.save()
         .then(() => apiResponse.successResponse(res, 'Question feedback Updated'))
         .catch((err) => {

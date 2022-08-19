@@ -10,6 +10,7 @@ const UserScehema = new mongoose.Schema(
     questions: { type: mongoose.Schema.Types.Array, required: false },
     questionPaper: { type: mongoose.Schema.Types.Array, required: false },
     points: { type: Number, required: true, default: 0 },
+    history: { type: mongoose.Schema.Types.Array, required: false },
   },
   { timestamps: true },
 );
