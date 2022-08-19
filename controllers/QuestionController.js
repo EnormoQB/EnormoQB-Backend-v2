@@ -313,6 +313,27 @@ const Stats = async (req, res, next) => {
         },
       },
     ]);
+    // pie chart data
+    const twelve = await Question.countDocuments({
+      standard: 12,
+    });
+    const tenth = await Question.countDocuments({
+      standard: 10,
+    });
+    const totalQuestions = await Question.countDocuments({});
+
+    // Standard wise question distribution
+    const classDistribution = [
+      {
+        name: '12th',
+        percent: ((twelve / totalQuestions) * 100).toFixed(2),
+      },
+      {
+        name: '10th',
+        percent: ((tenth / totalQuestions) * 100).toFixed(2),
+      },
+    ];
+
     await apiResponse.successResponseWithData(res, 'Success', {
       total,
       approved,
@@ -320,6 +341,7 @@ const Stats = async (req, res, next) => {
       rejected,
       contribute,
       month,
+      classDistribution,
     });
   } catch (error) {
     logger.error('Error :', error);
