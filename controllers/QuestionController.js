@@ -60,7 +60,7 @@ const QuestionList = async (req, res, next) => {
     if (questions.length !== 0) {
       apiResponse.successResponseWithData(res, 'Success', data);
     } else {
-      apiResponse.notFoundResponse(res, 'No data found');
+      apiResponse.successResponseWithData(res, 'Success', []);
     }
   } catch (error) {
     logger.error('Error :', error);
@@ -342,6 +342,7 @@ const Stats = async (req, res, next) => {
       contribute,
       month,
       classDistribution,
+      totalQuestions,
     });
   } catch (error) {
     logger.error('Error :', error);
@@ -379,7 +380,7 @@ const DeleteQuestion = async (req, res, next) => {
         .then(() => apiResponse.successResponse(res, 'Question deleted successfully'));
     } else {
       return apiResponse.validationErrorWithData(res, 'Approved question cannot be deleted');
-    }
+  } 
   } catch (err) {
     logger.error('Error :', err);
     return apiResponse.ErrorResponse(res, 'Error while deleting Question');
