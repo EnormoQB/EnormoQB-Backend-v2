@@ -114,20 +114,20 @@ const GeneratePreview = async (req, res, next) => {
 };
 
 const generatePaperName = (institute, standard, examType, board, subject) => {
-  const date = moment().format('DD MM YYYY');
+  const date = moment().format('DD-MM-YYYY');
   if (institute && examType && standard && subject) {
-    return `${institute} ${examType} ${date}`;
+    return `${institute} | ${examType} | ${date}`;
   }
 
   if (institute && !examType && standard && subject) {
-    return `${institute} ${board} ${date}`;
+    return `${institute} | ${board} | ${date}`;
   }
 
   if (institute && standard && subject) {
-    return `${institute} ${standard} ${subject} ${date}`;
+    return `${institute} | ${standard} | ${subject} | ${date}`;
   }
 
-  return `${board} ${standard} ${subject} ${date}`;
+  return `${board} | ${standard} | ${subject} | ${date}`;
 };
 
 const GeneratePaperModel = async (req, res, next) => {
@@ -165,6 +165,7 @@ const GeneratePaperModel = async (req, res, next) => {
       time,
       quesDiffDetails,
     });
+
     const paper = await newQuestionPaper.save().catch((err) => {
       logger.error('Error :', err);
       apiResponse.ErrorResponse(res, 'Error while adding Question Paper');
@@ -182,9 +183,16 @@ const GeneratePaperModel = async (req, res, next) => {
 
 const PreviousYear = async (req, res, next) => {
   try {
+    const { standard, subject, board } = req.query;
     const year = new Date().getFullYear();
     const date = new Date(year - 1, 12, 1);
-    const paper = await QuestionPaper.find({ createdAt: { $lte: date } });
+    const filters = {
+      ...(standard ? { standard: { $regex: standard, $options: 'i' } } : {}),
+      ...(subject ? { subject: { $regex: subject, $options: 'i' } } : {}),
+      ...(board ? { board: { $regex: board, $options: 'i' } } : {}),
+      ...({ createdAt: { $lte: date } }),
+    };
+    const paper = await QuestionPaper.find(filters);
     await apiResponse.successResponseWithData(res, 'Success', paper);
   } catch (error) {
     logger.error('Error :', error);
@@ -194,7 +202,14 @@ const PreviousYear = async (req, res, next) => {
 };
 const UserGeneratedPaper = async (req, res, next) => {
   try {
-    const paper = await QuestionPaper.find({ userId: req.user._id });
+    const { standard, subject, board } = req.query;
+    const filters = {
+      ...(standard ? { standard: { $regex: standard, $options: 'i' } } : {}),
+      ...(subject ? { subject: { $regex: subject, $options: 'i' } } : {}),
+      ...(board ? { board: { $regex: board, $options: 'i' } } : {}),
+      ...({ userId: req.user._id }),
+    };
+    const paper = await QuestionPaper.find(filters);
     await apiResponse.successResponseWithData(res, 'Success', paper);
   } catch (error) {
     logger.error('Error :', error);

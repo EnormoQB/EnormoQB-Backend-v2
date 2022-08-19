@@ -35,7 +35,7 @@ const QuestionList = async (req, res, next) => {
         : {}),
       ...(subject ? { subject: { $regex: subject, $options: 'i' } } : {}),
       ...(status ? { status: { $regex: status, $options: 'i' } } : {}),
-      ...(req.user.userType === 'member' || req.userType === 'developer' ? { userId: id } : {}),
+      ...(req.user.userType === 'member' ? { userId: id } : {}),
       ...(topics && topics.length !== 0 ? { topic: { $in: [topics] } } : {}),
     };
 
@@ -60,7 +60,7 @@ const QuestionList = async (req, res, next) => {
     if (questions.length !== 0) {
       apiResponse.successResponseWithData(res, 'Success', data);
     } else {
-      apiResponse.notFoundResponse(res, 'No data found');
+      apiResponse.successResponseWithData(res, 'Success', []);
     }
   } catch (error) {
     logger.error('Error :', error);
@@ -313,6 +313,27 @@ const Stats = async (req, res, next) => {
         },
       },
     ]);
+    // pie chart data
+    const twelve = await Question.countDocuments({
+      standard: 12,
+    });
+    const tenth = await Question.countDocuments({
+      standard: 10,
+    });
+    const totalQuestions = await Question.countDocuments({});
+
+    // Standard wise question distribution
+    const classDistribution = [
+      {
+        name: '12th',
+        percent: ((twelve / totalQuestions) * 100).toFixed(2),
+      },
+      {
+        name: '10th',
+        percent: ((tenth / totalQuestions) * 100).toFixed(2),
+      },
+    ];
+
     await apiResponse.successResponseWithData(res, 'Success', {
       total,
       approved,
@@ -320,6 +341,8 @@ const Stats = async (req, res, next) => {
       rejected,
       contribute,
       month,
+      classDistribution,
+      totalQuestions,
     });
   } catch (error) {
     logger.error('Error :', error);
@@ -335,7 +358,7 @@ const QuestionsPerTopic = async (req, res, next) => {
     const ans = [];
     let cnt = 0;
     topics.forEach(async (topic) => {
-      const count = await Question.countDocuments({ topic: { $in: [topic] } });
+      const count = await Question.countDocuments({ topic: { $in: [topic] }, status: { $regex: 'approved', $options: 'i' } });
       ans.push({ standard, subject, topic, count });
       cnt += 1;
       if (cnt === topics.length) {
@@ -348,6 +371,22 @@ const QuestionsPerTopic = async (req, res, next) => {
   }
 };
 
+const DeleteQuestion = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const question = await Question.findById(id);
+    if (question.status !== 'approved') {
+      await Question.findByIdAndDelete(id)
+        .then(() => apiResponse.successResponse(res, 'Question deleted successfully'));
+    } else {
+      return apiResponse.validationErrorWithData(res, 'Approved question cannot be deleted');
+    }
+  } catch (err) {
+    logger.error('Error :', err);
+    return apiResponse.ErrorResponse(res, 'Error while deleting Question');
+  }
+};
+
 module.exports = {
   QuestionList,
   AddQuestion,
@@ -356,4 +395,5 @@ module.exports = {
   SwitchQuestion,
   Stats,
   QuestionsPerTopic,
+  DeleteQuestion,
 };

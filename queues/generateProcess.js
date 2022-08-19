@@ -1,20 +1,20 @@
 const PdfMake = require('pdfmake');
 const fs = require('fs');
 const imageDataURI = require('image-data-uri');
-const mongoose = require('mongoose');
 const { uploadFileToS3, downloadFromS3 } = require('../helpers/awsUtils');
 const QuestionPaper = require('../models/QuestionPaperModel');
+const { titleCase } = require('../helpers/functions');
+
+const fonts = {
+  Roboto: {
+    normal: 'fonts/Roboto/Roboto-Regular.ttf',
+    bold: 'fonts/Roboto/Roboto-Medium.ttf',
+    italics: 'fonts/Roboto/Roboto-Italic.ttf',
+    bolditalics: 'fonts/Roboto/Roboto-MediumItalic.ttf',
+  },
+};
 
 const GeneratePDF = async (id) => {
-  // const {
-  //   standard,
-  //   subject,
-  //   pdfData,
-  //   time,
-  //   instructions,
-  //   instituteName,
-  //   name,
-  //   quesDiffDetails } = req.body;
   const paperData = await QuestionPaper.findById(id);
   const {
     questionList: pdfData,
@@ -28,24 +28,19 @@ const GeneratePDF = async (id) => {
     quesDiffDetails,
     name,
   } = paperData;
-  const fonts = {
-    Roboto: {
-      normal: 'fonts/Roboto/Roboto-Regular.ttf',
-      bold: 'fonts/Roboto/Roboto-Medium.ttf',
-      italics: 'fonts/Roboto/Roboto-Italic.ttf',
-      bolditalics: 'fonts/Roboto/Roboto-MediumItalic.ttf',
-    },
-  };
-  // iterate over objects of objects quesDiffDetails to calculate marks
+
   let totalMarks = 0;
-  Object.keys(quesDiffDetails).forEach((key) => {
-    totalMarks += quesDiffDetails[key].marks * quesDiffDetails[key].count;
+  pdfData.forEach((ques) => {
+    totalMarks += quesDiffDetails[titleCase(ques.difficulty)].marks;
   });
   const indexing = ['A', 'B', 'C', 'D'];
-  const year = new Date().getFullYear();
+
   const newPdfData = await Promise.all(
     pdfData.map(async (item) => {
-      if (item.imageKey !== null) {
+      if (
+        Object.prototype.hasOwnProperty.call(item, 'imageKey') &&
+        item.imageKey !== null
+      ) {
         const imageurl = downloadFromS3(item.imageKey);
         const final = await imageDataURI.encodeFromURL(imageurl);
         return { ...item, imageUrl: final };
@@ -54,7 +49,9 @@ const GeneratePDF = async (id) => {
     }),
   );
 
-  const dd = {
+  console.log('Hey 1');
+
+  const quesPaper = {
     background(currentPage, pageSize) {
       return [
         {
@@ -68,60 +65,61 @@ const GeneratePDF = async (id) => {
       ];
     },
     content: [
+      ...(instituteName.length > 1
+        ? [
+          {
+            alignment: 'center',
+            text: `${instituteName.toUpperCase()}\n\n`,
+            style: 'header',
+            bold: true,
+            fontSize: 20,
+            margin: [0, 0, 0, -16],
+          },
+        ]
+        : []),
+      ...(examType.length > 1
+        ? [
+          {
+            alignment: 'center',
+            text: `${examType}\n\n`,
+            style: 'header',
+            bold: true,
+            margin: [0, 0, 0, -10],
+          },
+        ]
+        : []),
       {
         alignment: 'center',
-        text: `${instituteName.toUpperCase()}\n\n`,
         style: 'header',
         bold: true,
-        fontSize: 20,
-        margin: [0, 0, 0, -16],
+        text: `${board} - Class ${standard === '10' ? 'X' : 'XII'}`,
+        margin: [0, 0, 0, 4],
       },
       {
         alignment: 'center',
-        text: `Question Paper ${year}-${year + 1}\n\n`,
         style: 'header',
         bold: true,
-        margin: [0, 0, 0, -10],
-      },
-      {
-        alignment: 'center',
-        style: 'header',
-        bold: true,
-        text: `Subject: ${subject.toUpperCase()}\n\n`,
-        margin: [0, 0, 0, -10],
-      },
-      {
-        alignment: 'center',
-        style: 'header',
-        bold: true,
-        text: `Class - ${standard === '10' ? 'X' : 'XII'}`,
-        margin: [0, 0, 0, 10],
+        text: `${subject.toUpperCase()}\n\n`,
+        margin: [0, 0, 0, 7],
       },
       {
         columns: [
-          {
-            text: `Time - ${time}mins`,
-          },
-          {
-            text: `Maximum Marks : ${totalMarks}`,
-            alignment: 'right',
-          },
+          { text: `Time - ${time} mins` },
+          { text: `Maximum Marks : ${totalMarks}`, alignment: 'right' },
         ],
-        margin: [10, 0, 10, 6],
+        margin: [0, 0, 0, 6],
         bold: true,
       },
       {
         stack: [
-          {
-            text: 'General Instructions',
-          },
-          `${instructions}`,
-          '1. The Question Paper contains three sections',
-          '2. The first section contains the general instructions',
-          '3. The second section contains the questions',
-          '4. The third section contains the answers',
-          'All Questions carry equal marks',
-          'There is no negative marking',
+          { text: 'General Instructions:', bold: true, italics: false },
+          `${JSON.parse(instructions)}`,
+          // '1. The Question Paper contains three sections',
+          // '2. The first section contains the general JSON.parse(instructions)',
+          // '3. The second section contains the questions',
+          // '4. The third section contains the answers',
+          // 'All Questions carry equal marks',
+          // 'There is no negative marking',
         ],
         style: 'superMargin',
         italics: true,
@@ -134,6 +132,7 @@ const GeneratePDF = async (id) => {
             bold: true,
             margin: [0, 0, 0, 7],
           },
+          Object.prototype.hasOwnProperty.call(item, 'imageKey') &&
           item.imageKey !== null
             ? {
               image: item.imageUrl,
@@ -147,14 +146,14 @@ const GeneratePDF = async (id) => {
             text: `${indexing[i]}. ${option}`,
             margin: [0, 0, 0, 5],
           })),
-          {
-            text: ' ',
-            margin: [0, 0, 0, 7],
-          },
+          { text: ' ', margin: [0, 0, 0, 7] },
         ],
       })),
     ],
   };
+
+  console.log('Hey 2');
+
   const answerkey = {
     background(currentPage, pageSize) {
       return [
@@ -190,10 +189,11 @@ const GeneratePDF = async (id) => {
       })),
     ],
   };
+
   const questionKeyId = `${id.toString()}question`;
   const answerKeyId = `${id.toString()}answer`;
   const pdfmake = new PdfMake(fonts);
-  const questionPdf = pdfmake.createPdfKitDocument(dd);
+  const questionPdf = pdfmake.createPdfKitDocument(quesPaper);
   const questionChunks = [];
 
   questionPdf.on('data', (chunk) => {
@@ -231,4 +231,5 @@ const PdfProcess = async (job, done) => {
     console.log(err);
   }
 };
+
 module.exports = { PdfProcess };
