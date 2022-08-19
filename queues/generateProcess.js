@@ -26,7 +26,8 @@ const GeneratePDF = async (id) => {
     instructions,
     time,
     quesDiffDetails,
-    name } = paperData;
+    name,
+  } = paperData;
   const fonts = {
     Roboto: {
       normal: 'fonts/Roboto/Roboto-Regular.ttf',
@@ -35,10 +36,10 @@ const GeneratePDF = async (id) => {
       bolditalics: 'fonts/Roboto/Roboto-MediumItalic.ttf',
     },
   };
-    // iterate over objects of objects quesDiffDetails to calculate marks
+  // iterate over objects of objects quesDiffDetails to calculate marks
   let totalMarks = 0;
   Object.keys(quesDiffDetails).forEach((key) => {
-    totalMarks += (quesDiffDetails[key].marks * quesDiffDetails[key].count);
+    totalMarks += quesDiffDetails[key].marks * quesDiffDetails[key].count;
   });
   const indexing = ['A', 'B', 'C', 'D'];
   const year = new Date().getFullYear();
@@ -63,7 +64,6 @@ const GeneratePDF = async (id) => {
             { type: 'line', x1: 5, y1: 835, x2: 590, y2: 835, lineWidth: 2 }, // Bottom line
             { type: 'line', x1: 590, y1: 5, x2: 590, y2: 835, lineWidth: 2 }, // Rigth line
           ],
-
         },
       ];
     },
@@ -165,7 +165,6 @@ const GeneratePDF = async (id) => {
             { type: 'line', x1: 5, y1: 835, x2: 590, y2: 835, lineWidth: 2 }, // Bottom line
             { type: 'line', x1: 590, y1: 5, x2: 590, y2: 835, lineWidth: 2 }, // Rigth line
           ],
-
         },
       ];
     },
@@ -193,7 +192,7 @@ const GeneratePDF = async (id) => {
   };
   const pdfmake = new PdfMake(fonts);
   const doc = pdfmake.createPdfKitDocument(dd);
-  doc.pipe(fs.createWriteStream('../document.pdf'));
+  doc.pipe(fs.createWriteStream('document.pdf'));
   doc.end();
   // const questionKeyId = `${id.toString()}questionKey`;
   // await uploadFileToS3(
@@ -202,7 +201,7 @@ const GeneratePDF = async (id) => {
   //   'application/pdf',
   // );
   const answerPdf = pdfmake.createPdfKitDocument(answerkey);
-  answerPdf.pipe(fs.createWriteStream('../answerkey.pdf'));
+  answerPdf.pipe(fs.createWriteStream('answerkey.pdf'));
   answerPdf.end();
   // const answerKeyId = `${id.toString()}answerkey`;
   // await uploadFileToS3(
