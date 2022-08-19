@@ -190,32 +190,43 @@ const GeneratePDF = async (id) => {
       })),
     ],
   };
+  const questionKeyId = `${id.toString()}question`;
+  const answerKeyId = `${id.toString()}answer`;
   const pdfmake = new PdfMake(fonts);
-  const doc = pdfmake.createPdfKitDocument(dd);
-  doc.pipe(fs.createWriteStream('document.pdf'));
-  doc.end();
-  // const questionKeyId = `${id.toString()}questionKey`;
-  // await uploadFileToS3(
-  //   'document.pdf',
-  //   questionKeyId,
-  //   'application/pdf',
-  // );
+  const questionPdf = pdfmake.createPdfKitDocument(dd);
+  const questionChunks = [];
+
+  questionPdf.on('data', (chunk) => {
+    questionChunks.push(chunk);
+  });
+
+  questionPdf.on('end', async () => {
+    const questionBuffer = Buffer.concat(questionChunks);
+    await uploadFileToS3(questionBuffer, questionKeyId, 'application/pdf');
+  });
+
+  questionPdf.end();
+
   const answerPdf = pdfmake.createPdfKitDocument(answerkey);
-  answerPdf.pipe(fs.createWriteStream('answerkey.pdf'));
+  const answerChunks = [];
+
+  answerPdf.on('data', (chunk) => {
+    answerChunks.push(chunk);
+  });
+
+  answerPdf.on('end', async () => {
+    const answerBuffer = Buffer.concat(answerChunks);
+    await uploadFileToS3(answerBuffer, answerKeyId, 'application/pdf');
+  });
+
   answerPdf.end();
-  // const answerKeyId = `${id.toString()}answerkey`;
-  // await uploadFileToS3(
-  //   'answerKey.pdf',
-  //   answerKeyId,
-  //   'application/pdf',
-  // );
-  return id;
+  return { id, questionKey: questionKeyId, answerKey: answerKeyId };
 };
 
 const PdfProcess = async (job, done) => {
   try {
-    await GeneratePDF(job.data);
-    done(null, job.data);
+    const result = await GeneratePDF(job.data);
+    done(null, result);
   } catch (err) {
     console.log(err);
   }

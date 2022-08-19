@@ -13,10 +13,11 @@ const paperQueue = new Queue('paperQueue', {
 paperQueue.process(PdfProcess);
 
 paperQueue.on('completed', async (job, result) => {
-  const paperData = await QuestionPaper.findByIdAndUpdate(result, {
+  const { id, questionKey, answerKey } = result;
+  const paperData = await QuestionPaper.findByIdAndUpdate(id, {
     status: 'completed',
-    PdfKey: `${result}questionKey`,
-    ansKey: `${result}answerkey`,
+    questionKey,
+    answerKey,
   });
   const year = new Date().getFullYear();
   const finalList = await Promise.all(

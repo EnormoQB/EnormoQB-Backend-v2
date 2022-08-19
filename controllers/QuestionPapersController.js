@@ -142,7 +142,6 @@ const GeneratePaperModel = async (req, res, next) => {
       instructions,
       time,
       quesDiffDetails,
-      userId,
     } = req.body;
 
     const name = generatePaperName(
@@ -157,7 +156,6 @@ const GeneratePaperModel = async (req, res, next) => {
       name,
       instituteName,
       userId: req.user._id,
-      // userId
       questionList,
       standard,
       subject,
