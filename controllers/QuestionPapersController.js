@@ -184,9 +184,17 @@ const GeneratePaperModel = async (req, res, next) => {
 
 const PreviousYear = async (req, res, next) => {
   try {
+    const { standard, subject, board } = req.query;
     const year = new Date().getFullYear();
     const date = new Date(year - 1, 12, 1);
-    const paper = await QuestionPaper.find({ createdAt: { $lte: date } });
+    const filters = {
+      ...(standard ? { standard: { $regex: standard, $options: 'i' } } : {}),
+      ...(subject ? { subject: { $regex: subject, $options: 'i' } } : {}),
+      ...(board ? { board: { $regex: board, $options: 'i' } } : {}),
+      ...(req.user.userType === 'member' ? { createdAt: { $lte: date } } : {}),
+      ...(req.user.userType === 'admin' ? { userId: req.user._id } : {}),
+    };
+    const paper = await QuestionPaper.find(filters);
     await apiResponse.successResponseWithData(res, 'Success', paper);
   } catch (error) {
     logger.error('Error :', error);
