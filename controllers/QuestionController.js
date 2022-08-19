@@ -6,17 +6,13 @@ const logger = require('../helpers/winston');
 const { uploadFileToS3, downloadFromS3 } = require('../helpers/awsUtils');
 const User = require('../models/UserModel');
 const reservedQuestions = require('../helpers/reservedQuestion');
-// const User = require('../models/UserModel');
+const subjects = require('../helpers/subjectsData');
 
 mongoose.set('useFindAndModify', false);
 
 const ReservedQuestions = async (req, res, next) => {
   try {
-    await apiResponse.successResponseWithData(
-      res,
-      'Success',
-      reservedQuestions,
-    );
+    await apiResponse.successResponseWithData(res, 'Success', reservedQuestions);
   } catch (error) {
     logger.error('Error :', error);
     apiResponse.ErrorResponse(res, error);
@@ -25,9 +21,9 @@ const ReservedQuestions = async (req, res, next) => {
 };
 const QuestionList = async (req, res, next) => {
   try {
-    const { standard, difficulty, subject, status, userId, topics, page } =
+    const { standard, difficulty, subject, status, topics, page } =
       req.query;
-
+    const { id } = req.user;
     const currentPage = page ? parseInt(page, 10) : 1;
     const perPage = 15;
     const skip = (currentPage - 1) * perPage;
@@ -39,7 +35,7 @@ const QuestionList = async (req, res, next) => {
         : {}),
       ...(subject ? { subject: { $regex: subject, $options: 'i' } } : {}),
       ...(status ? { status: { $regex: status, $options: 'i' } } : {}),
-      ...(userId ? { userId } : {}),
+      ...(req.user.userType === 'member' || req.userType === 'developer' ? { userId: id } : {}),
       ...(topics && topics.length !== 0 ? { topic: { $in: [topics] } } : {}),
     };
 
@@ -64,7 +60,7 @@ const QuestionList = async (req, res, next) => {
     if (questions.length !== 0) {
       apiResponse.successResponseWithData(res, 'Success', data);
     } else {
-      apiResponse.successResponseWithData(res, 'No data found', []);
+      apiResponse.notFoundResponse(res, 'No data found');
     }
   } catch (error) {
     logger.error('Error :', error);
@@ -139,14 +135,12 @@ const AddQuestion = async (req, res, next) => {
       standard,
       subject,
       topic: topics,
-      status: 'pending',
       imageKey,
       difficulty,
       userId,
       answerExplaination,
       similarQuestions: similarQuestionsID,
     });
-
     await newQuestion
       .save()
       .then(() => {
@@ -173,15 +167,68 @@ const UpdateStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    if (status === 'approved') {
-      await User.findByIdAndUpdate(req.user._id, { $inc: { points: 10 } });
+
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    const question = await Question.findById(id);
+    const message = { text: '', icon: '', date: new Date().toLocaleDateString('en-GB', options) };
+
+    if (status === 'approved' && question.status === 'pending') {
+      question.status = status;
+
+      message.text = 'Your question has been approved';
+      message.icon = 'check';
+
+      const user = await User.findById(req.user._id);
+
+      if (user.history) user.history.push(message);
+      else user.history = [message];
+
+      const pointsMssg = { text: 'You earned 10 points', icon: 'up', date: new Date().toLocaleDateString('en-GB', options) };
+      user.history.push(pointsMssg);
+      user.points += 10;
+
+      await question.save()
+        .then(() => {})
+        .catch((err) => {
+          logger.error('Error :', err);
+          return apiResponse.ErrorResponse(res, 'Error while updating Question');
+        });
+
+      await user.save()
+        .then(() => apiResponse.successResponse(res, 'Question Status Updated'))
+        .catch((err) => {
+          logger.error('Error :', err);
+          return apiResponse.ErrorResponse(res, 'Error while updating points');
+        });
+    } else if (status === 'rejected' && question.status === 'pending') {
+      const { feedback } = req.body;
+      question.status = status;
+      question.feedback = feedback;
+
+      message.text = 'Your question has been rejected';
+      message.icon = 'reject';
+
+      const user = await User.findById(req.user._id);
+
+      if (user.history) user.history.push(message);
+      else user.history = [message];
+
+      await user.save()
+        .then(() => {})
+        .catch((err) => {
+          logger.error('Error :', err);
+          return apiResponse.ErrorResponse(res, 'Error while updating Question');
+        });
+
+      await question.save()
+        .then(() => apiResponse.successResponse(res, 'Question feedback Updated'))
+        .catch((err) => {
+          logger.error('Error :', err);
+          return apiResponse.ErrorResponse(res, 'Error while updating Question');
+        });
+    } else {
+      return apiResponse.validationErrorWithData(res, 'Invalid status');
     }
-    await Question.findByIdAndUpdate(id, { status })
-      .then(() => apiResponse.successResponse(res, 'Question Status Updated'))
-      .catch((err) => {
-        logger.error('Error :', err);
-        return apiResponse.ErrorResponse(res, 'Error while updating Question');
-      });
   } catch (error) {
     logger.error('Error :', error);
     apiResponse.ErrorResponse(res, error);
@@ -220,19 +267,22 @@ const SwitchQuestion = async (req, res, next) => {
 
 const Stats = async (req, res, next) => {
   try {
-    const { userId } = req.query;
-    const total = await Question.countDocuments();
+    const { id } = req.user;
+    console.log(id);
+    const total = await Question.countDocuments({
+      ...(req.user.userType === 'member' || req.userType === 'developer' ? { userId: id } : {}),
+    });
     const approved = await Question.countDocuments({
       status: { $regex: 'approved', $options: 'i' },
-      ...(userId ? { userId } : {}),
+      ...(req.user.userType === 'member' || req.userType === 'developer' ? { userId: id } : {}),
     });
     const pending = await Question.countDocuments({
       status: { $regex: 'pending', $options: 'i' },
-      ...(userId ? { userId } : {}),
+      ...(req.user.userType === 'member' || req.userType === 'developer' ? { userId: id } : {}),
     });
     const rejected = await Question.countDocuments({
       status: { $regex: 'rejected', $options: 'i' },
-      ...(userId ? { userId } : {}),
+      ...(req.user.userType === 'member' || req.userType === 'developer' ? { userId: id } : {}),
     });
     // number of question contributed per day
     const contribute = await Question.aggregate([
@@ -275,19 +325,32 @@ const Stats = async (req, res, next) => {
   }
 };
 
-const UpdateFeedback = async (req, res, next) => {
+const QuestionsPerTopic = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const { feedback } = req.body;
-    await Question.findByIdAndUpdate(id, { feedback, status: 'rejected' })
-      .then(() => apiResponse.successResponse(res, 'Question feedback Updated'))
-      .catch((err) => {
-        logger.error('Error :', err);
-        return apiResponse.ErrorResponse(res, 'Error while updating Question');
+    // let ans = {};
+    const topics = [];
+    Object.entries(subjects).forEach(([key, val]) => {
+      Object.entries(val).forEach(([key2, val2]) => {
+        Object.entries(val2).forEach(([subject, topic]) => {
+          topic.forEach(async (t) => {
+            topics.push({ standard: key2, subject, topic: t });
+          });
+        });
       });
+    });
+    const ans = [];
+    let cnt = 0;
+    topics.forEach(async (t) => {
+      const count = await Question.countDocuments({ topic: { $in: [t.topic] } });
+      ans.push({ ...t, count });
+      cnt += 1;
+      if (cnt === topics.length) {
+        await apiResponse.successResponseWithData(res, 'Success', ans);
+      }
+    });
   } catch (err) {
     logger.error('Error :', err);
-    return apiResponse.ErrorResponse(res, 'Error while updating Feedback');
+    return apiResponse.ErrorResponse(res, 'Error while getting Questions');
   }
 };
 
@@ -298,5 +361,5 @@ module.exports = {
   ReservedQuestions,
   SwitchQuestion,
   Stats,
-  UpdateFeedback,
+  QuestionsPerTopic,
 };

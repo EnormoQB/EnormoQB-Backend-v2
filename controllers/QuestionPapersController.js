@@ -143,7 +143,19 @@ const GeneratePaperModel = async (req, res, next) => {
       time,
       quesDiffDetails,
       userId,
-    } = req.body;
+    } = JSON.parse(req.body.data);
+    // const {
+    //   instituteName,
+    //   standard,
+    //   subject,
+    //   examType,
+    //   questionList,
+    //   board,
+    //   instructions,
+    //   time,
+    //   quesDiffDetails,
+    //   userId,
+    // } = req.body;
 
     const name = generatePaperName(
       instituteName,
@@ -156,8 +168,8 @@ const GeneratePaperModel = async (req, res, next) => {
     const newQuestionPaper = new QuestionPaper({
       name,
       instituteName,
-      // userId: req.user._id,
-      userId,
+      userId: req.user._id,
+      // userId
       questionList,
       standard,
       subject,
