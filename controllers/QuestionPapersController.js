@@ -114,7 +114,7 @@ const GeneratePreview = async (req, res, next) => {
 };
 
 const generatePaperName = (institute, standard, examType, board, subject) => {
-  const date = moment().format('DD MM YYYY');
+  const date = moment().format('DD-MM-YYYY');
   if (institute && examType && standard && subject) {
     return `${institute} ${examType} ${date}`;
   }
@@ -167,6 +167,7 @@ const GeneratePaperModel = async (req, res, next) => {
       time,
       quesDiffDetails,
     });
+
     const paper = await newQuestionPaper.save().catch((err) => {
       logger.error('Error :', err);
       apiResponse.ErrorResponse(res, 'Error while adding Question Paper');

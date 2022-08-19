@@ -13,6 +13,7 @@ const paperQueue = new Queue('paperQueue', {
 paperQueue.process(PdfProcess);
 
 paperQueue.on('completed', async (job, result) => {
+  console.log('on completed', result);
   const paperData = await QuestionPaper.findByIdAndUpdate(result, {
     status: 'completed',
     PdfKey: `${result}questionKey`,
@@ -21,13 +22,14 @@ paperQueue.on('completed', async (job, result) => {
   const year = new Date().getFullYear();
   const finalList = await Promise.all(
     paperData.questionList.map(async (item) => {
-      if (item._id) {
+      if (!Object.prototype.hasOwnProperty.call(item, 'custom')) {
         const question = await Question.findById(item._id);
         if (question.years) question.years.push(year);
         else question.years = [year];
         await question.save();
         return item._id;
       }
+      return null;
     }),
   );
   paperData.questionList = finalList;
@@ -35,15 +37,15 @@ paperQueue.on('completed', async (job, result) => {
 });
 
 paperQueue.on('error', (error) => {
-  console.log(error);
+  console.log('Job error', error);
 });
 
 paperQueue.on('waiting', (jobId) => {
-  console.log(jobId);
+  console.log('Job waiting', jobId);
 });
 
 paperQueue.on('failed', (job, err) => {
-  console.log(job, err);
+  console.log('Job failed', job, err);
 });
 
 const createPaper = async (id) => {
