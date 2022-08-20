@@ -70,7 +70,6 @@ const QuestionList = async (req, res, next) => {
 };
 
 const AddQuestion = async (req, res, next) => {
-  console.log(req.body);
   try {
     const {
       standard,
@@ -271,7 +270,6 @@ const SwitchQuestion = async (req, res, next) => {
 const Stats = async (req, res, next) => {
   try {
     const { id } = req.user;
-    console.log(id);
     const total = await Question.countDocuments({
       ...(req.user.userType === 'member' || req.userType === 'developer' ? { userId: id } : {}),
     });
@@ -326,11 +324,11 @@ const Stats = async (req, res, next) => {
     const classDistribution = [
       {
         name: '12th',
-        percent: ((twelve / totalQuestions) * 100).toFixed(2),
+        value: twelve,
       },
       {
         name: '10th',
-        percent: ((tenth / totalQuestions) * 100).toFixed(2),
+        value: tenth,
       },
     ];
 

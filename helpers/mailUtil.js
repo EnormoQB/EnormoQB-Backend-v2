@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const logger = require('./winston');
 require('dotenv').config();
 
 const main = async (mailOptions) => {
@@ -16,7 +17,7 @@ const main = async (mailOptions) => {
 
   const info = await transporter.sendMail(mailOptions);
 
-  console.log('Email sent successfully', info.messageId);
+  logger.info('Email sent successfully', info.messageId);
 };
 
 module.exports = main;

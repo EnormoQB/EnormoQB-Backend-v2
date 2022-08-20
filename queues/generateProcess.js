@@ -4,6 +4,7 @@ const imageDataURI = require('image-data-uri');
 const { uploadFileToS3, downloadFromS3 } = require('../helpers/awsUtils');
 const QuestionPaper = require('../models/QuestionPaperModel');
 const { titleCase } = require('../helpers/functions');
+const logger = require('../helpers/winston');
 
 const fonts = {
   Roboto: {
@@ -48,8 +49,6 @@ const GeneratePDF = async (id) => {
       return item;
     }),
   );
-
-  console.log('Hey 1');
 
   const quesPaper = {
     background(currentPage, pageSize) {
@@ -152,8 +151,6 @@ const GeneratePDF = async (id) => {
     ],
   };
 
-  console.log('Hey 2');
-
   const answerkey = {
     background(currentPage, pageSize) {
       return [
@@ -228,7 +225,7 @@ const PdfProcess = async (job, done) => {
     const result = await GeneratePDF(job.data);
     done(null, result);
   } catch (err) {
-    console.log(err);
+    logger.error('Error', err);
   }
 };
 
