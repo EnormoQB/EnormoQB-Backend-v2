@@ -129,35 +129,40 @@ const AddQuestion = async (req, res, next) => {
     const similarQuestionsID = similarQuestionsResponse.map((item) => item._id);
 
     if (id !== null) {
-      await Question.findByIdAndUpdate(
-        id,
-        {
-          standard,
-          topic: topics,
-          options,
-          imageKey,
-          question,
-          subject,
-          difficulty,
-          answer,
-          answerExplaination,
-          similarQuestions: similarQuestionsID,
-          status: 'pending',
-        },
-      )
-        .then(() => {
-          similarQuestionsResponse.forEach((item) => {
-            const { similarQuestions = [] } = item;
-            similarQuestions.push(questionId);
-            item.similarQuestions = similarQuestions;
-            Question.findByIdAndUpdate(item._id, item).exec();
+      const ques = await Question.findById(id);
+      if (ques.status === 'rejected') {
+        await ques.update(
+          id,
+          {
+            standard,
+            topic: topics,
+            options,
+            imageKey,
+            question,
+            subject,
+            difficulty,
+            answer,
+            answerExplaination,
+            similarQuestions: similarQuestionsID,
+            status: 'pending',
+          },
+        )
+          .then(() => {
+            similarQuestionsResponse.forEach((item) => {
+              const { similarQuestions = [] } = item;
+              similarQuestions.push(questionId);
+              item.similarQuestions = similarQuestions;
+              Question.findByIdAndUpdate(item._id, item).exec();
+            });
+            apiResponse.successResponse(res, 'Successfully added');
+          })
+          .catch((err) => {
+            logger.error('Error :', err);
+            return apiResponse.ErrorResponse(res, 'Error while adding Question');
           });
-          apiResponse.successResponse(res, 'Successfully added');
-        })
-        .catch((err) => {
-          logger.error('Error :', err);
-          return apiResponse.ErrorResponse(res, 'Error while adding Question');
-        });
+      } else {
+        return apiResponse.validationErrorWithData(res, 'Pending and approved question cannot be updated');
+      }
     } else {
       const newQuestion = new Question({
         _id: questionId,
@@ -304,6 +309,7 @@ const SwitchQuestion = async (req, res, next) => {
 const Stats = async (req, res, next) => {
   try {
     const { id } = req.user;
+    // const { id } = req.query;
     console.log(id);
     const total = await Question.countDocuments({
       ...(req.user.userType === 'member' || req.userType === 'developer' ? { userId: id } : {}),
@@ -335,6 +341,9 @@ const Stats = async (req, res, next) => {
           _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
           totalQuestion: { $sum: 1 },
         },
+      },
+      {
+        $sort: { _id: 1 },
       },
     ]);
     // number of question contributed per month
