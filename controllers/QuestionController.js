@@ -413,7 +413,7 @@ const DeleteQuestion = async (req, res, next) => {
         .then(() => apiResponse.successResponse(res, 'Question deleted successfully'));
     } else {
       return apiResponse.validationErrorWithData(res, 'Approved question cannot be deleted');
-  } 
+    }
   } catch (err) {
     logger.error('Error :', err);
     return apiResponse.ErrorResponse(res, 'Error while deleting Question');

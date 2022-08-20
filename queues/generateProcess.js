@@ -67,26 +67,26 @@ const GeneratePDF = async (id) => {
     content: [
       ...(instituteName.length > 1
         ? [
-            {
-              alignment: 'center',
-              text: `${instituteName.toUpperCase()}\n\n`,
-              style: 'header',
-              bold: true,
-              fontSize: 20,
-              margin: [0, 0, 0, -16],
-            },
-          ]
+          {
+            alignment: 'center',
+            text: `${instituteName.toUpperCase()}\n\n`,
+            style: 'header',
+            bold: true,
+            fontSize: 20,
+            margin: [0, 0, 0, -16],
+          },
+        ]
         : []),
       ...(examType.length > 1
         ? [
-            {
-              alignment: 'center',
-              text: `${examType}\n\n`,
-              style: 'header',
-              bold: true,
-              margin: [0, 0, 0, -10],
-            },
-          ]
+          {
+            alignment: 'center',
+            text: `${examType}\n\n`,
+            style: 'header',
+            bold: true,
+            margin: [0, 0, 0, -10],
+          },
+        ]
         : []),
       {
         alignment: 'center',
@@ -135,12 +135,12 @@ const GeneratePDF = async (id) => {
           Object.prototype.hasOwnProperty.call(item, 'imageKey') &&
           item.imageKey !== null
             ? {
-                image: item.imageUrl,
-                width: 200,
-                height: 100,
-                margin: [0, 4, 0, 12],
-                alignment: 'center',
-              }
+              image: item.imageUrl,
+              width: 200,
+              height: 100,
+              margin: [0, 4, 0, 12],
+              alignment: 'center',
+            }
             : ' ',
           item.options.map((option, i) => ({
             text: `${indexing[i]}. ${option}`,
@@ -190,34 +190,43 @@ const GeneratePDF = async (id) => {
     ],
   };
 
-  console.log('Hey 3');
-
+  const questionKeyId = `${id.toString()}question`;
+  const answerKeyId = `${id.toString()}answer`;
   const pdfmake = new PdfMake(fonts);
-  const doc = pdfmake.createPdfKitDocument(quesPaper);
-  doc.pipe(fs.createWriteStream('document.pdf'));
-  doc.end();
-  // const questionKeyId = `${id.toString()}questionKey`;
-  // await uploadFileToS3(
-  //   'document.pdf',
-  //   questionKeyId,
-  //   'application/pdf',
-  // );
+  const questionPdf = pdfmake.createPdfKitDocument(quesPaper);
+  const questionChunks = [];
+
+  questionPdf.on('data', (chunk) => {
+    questionChunks.push(chunk);
+  });
+
+  questionPdf.on('end', async () => {
+    const questionBuffer = Buffer.concat(questionChunks);
+    await uploadFileToS3(questionBuffer, questionKeyId, 'application/pdf');
+  });
+
+  questionPdf.end();
+
   const answerPdf = pdfmake.createPdfKitDocument(answerkey);
-  answerPdf.pipe(fs.createWriteStream('answerkey.pdf'));
+  const answerChunks = [];
+
+  answerPdf.on('data', (chunk) => {
+    answerChunks.push(chunk);
+  });
+
+  answerPdf.on('end', async () => {
+    const answerBuffer = Buffer.concat(answerChunks);
+    await uploadFileToS3(answerBuffer, answerKeyId, 'application/pdf');
+  });
+
   answerPdf.end();
-  // const answerKeyId = `${id.toString()}answerkey`;
-  // await uploadFileToS3(
-  //   'answerKey.pdf',
-  //   answerKeyId,
-  //   'application/pdf',
-  // );
-  return id;
+  return { id, questionKey: questionKeyId, answerKey: answerKeyId };
 };
 
 const PdfProcess = async (job, done) => {
   try {
-    await GeneratePDF(job.data);
-    done(null, job.data);
+    const result = await GeneratePDF(job.data);
+    done(null, result);
   } catch (err) {
     console.log(err);
   }
