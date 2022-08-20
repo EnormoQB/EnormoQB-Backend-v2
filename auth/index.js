@@ -1,11 +1,12 @@
 const passport = require('passport');
 const express = require('express');
-
-const router = express.Router();
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const apiResponse = require('../helpers/apiResponse');
 const User = require('../models/UserModel');
 const PendingInvites = require('../models/PendingInvites');
 const logger = require('../helpers/winston');
+
+const router = express.Router();
 
 passport.use(
   new GoogleStrategy(
@@ -98,6 +99,35 @@ router.get(
 
 router.get('/user', (req, res) => {
   res.send(req.user);
+});
+
+router.post('/toggleStatus', async (req, res, next) => {
+  try {
+    const { id } = req.body;
+    const userDetails = await User.findById(id);
+
+    if (userDetails.status.value === 'freezed') {
+      userDetails.status = { ...userDetails.status, value: 'active' };
+      userDetails.save();
+    } else {
+      const freezedDetails = {
+        lastFreezed: new Date(),
+        count: userDetails.status.freezedDetails.count + 1,
+      };
+      userDetails.status = {
+        ...userDetails.status,
+        value: 'freezed',
+        freezedDetails,
+      };
+      userDetails.save();
+    }
+
+    apiResponse.successResponse(res, 'Successful');
+  } catch (error) {
+    logger.error('Error :', error);
+    apiResponse.ErrorResponse(res, error);
+    next(error);
+  }
 });
 
 router.get('/logout', (req, res) => {

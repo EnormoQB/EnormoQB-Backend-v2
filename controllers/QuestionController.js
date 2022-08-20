@@ -73,7 +73,6 @@ const QuestionList = async (req, res, next) => {
 };
 
 const AddQuestion = async (req, res, next) => {
-  console.log(req.body);
   try {
     const {
       standard,
@@ -375,9 +374,7 @@ const Stats = async (req, res, next) => {
           totalQuestion: { $sum: 1 },
         },
       },
-      {
-        $sort: { _id: 1 },
-      },
+      { $sort: { _id: 1 } },
     ]);
     // number of question contributed per month
     const month = await Question.aggregate([
@@ -395,8 +392,8 @@ const Stats = async (req, res, next) => {
 
     // Standard wise question distribution
     const classDistribution = [
-      { name: '12th', percent: ((twelve / totalQuestions) * 100).toFixed(2) },
-      { name: '10th', percent: ((tenth / totalQuestions) * 100).toFixed(2) },
+      { name: '12th', value: twelve },
+      { name: '10th', value: tenth },
     ];
 
     await apiResponse.successResponseWithData(res, 'Success', {

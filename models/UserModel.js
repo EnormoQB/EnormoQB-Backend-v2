@@ -11,6 +11,17 @@ const UserScehema = new mongoose.Schema(
     questionPaper: { type: mongoose.Schema.Types.Array, required: false },
     points: { type: Number, required: true, default: 0 },
     history: { type: mongoose.Schema.Types.Array, required: false },
+    status: {
+      type: mongoose.Schema.Types.Mixed,
+      required: true,
+      default: {
+        value: 'active',
+        freezedDetails: {
+          lastFreezed: null,
+          count: 0,
+        },
+      },
+    },
   },
   { timestamps: true },
 );

@@ -2,6 +2,7 @@ const Queue = require('bull');
 const QuestionPaper = require('../models/QuestionPaperModel');
 const Question = require('../models/QuestionModel');
 const { PdfProcess } = require('./generateProcess');
+const logger = require('../helpers/winston');
 
 const redisPort = process.env.REDIS_PORT || 6379;
 const redisHost = process.env.REDIS_HOST || 'localhost';
@@ -37,23 +38,23 @@ paperQueue.on('completed', async (job, result) => {
 });
 
 paperQueue.on('error', (error) => {
-  console.log('Job error', error);
+  logger.error('Job error', error);
 });
 
 paperQueue.on('waiting', (jobId) => {
-  console.log('Job waiting', jobId);
+  logger.info('Job waiting', jobId);
 });
 
 paperQueue.on('failed', (job, err) => {
-  console.log('Job failed', job, err);
+  logger.error('Job failed', job, err);
 });
 
 const createPaper = async (id) => {
   try {
-    console.log(`Creating paper for ${id}`);
+    logger.info(`Creating paper for ${id}`);
     await paperQueue.add(id, { attempt: 2 });
   } catch (err) {
-    console.log(err);
+    logger.error('Error', err);
   }
 };
 
