@@ -12,7 +12,11 @@ mongoose.set('useFindAndModify', false);
 
 const ReservedQuestions = async (req, res, next) => {
   try {
-    await apiResponse.successResponseWithData(res, 'Success', reservedQuestions);
+    await apiResponse.successResponseWithData(
+      res,
+      'Success',
+      reservedQuestions,
+    );
   } catch (error) {
     logger.error('Error :', error);
     apiResponse.ErrorResponse(res, error);
@@ -21,8 +25,7 @@ const ReservedQuestions = async (req, res, next) => {
 };
 const QuestionList = async (req, res, next) => {
   try {
-    const { standard, difficulty, subject, status, topics, page } =
-      req.query;
+    const { standard, difficulty, subject, status, topics, page } = req.query;
     const { id } = req.user;
     const currentPage = page ? parseInt(page, 10) : 1;
     const perPage = 15;
@@ -128,25 +131,23 @@ const AddQuestion = async (req, res, next) => {
 
     const similarQuestionsID = similarQuestionsResponse.map((item) => item._id);
 
-    if (id !== null) {
+    if (id) {
       const ques = await Question.findById(id);
+
       if (ques.status === 'rejected') {
-        await ques.update(
-          id,
-          {
-            standard,
-            topic: topics,
-            options,
-            imageKey,
-            question,
-            subject,
-            difficulty,
-            answer,
-            answerExplaination,
-            similarQuestions: similarQuestionsID,
-            status: 'pending',
-          },
-        )
+        Question.findByIdAndUpdate(id, {
+          standard,
+          topic: topics,
+          options,
+          imageKey,
+          question,
+          subject,
+          difficulty,
+          answer,
+          answerExplaination,
+          similarQuestions: similarQuestionsID,
+          status: 'pending',
+        })
           .then(() => {
             similarQuestionsResponse.forEach((item) => {
               const { similarQuestions = [] } = item;
@@ -158,10 +159,16 @@ const AddQuestion = async (req, res, next) => {
           })
           .catch((err) => {
             logger.error('Error :', err);
-            return apiResponse.ErrorResponse(res, 'Error while adding Question');
+            return apiResponse.ErrorResponse(
+              res,
+              'Error while adding Question',
+            );
           });
       } else {
-        return apiResponse.validationErrorWithData(res, 'Pending and approved question cannot be updated');
+        return apiResponse.validationErrorWithData(
+          res,
+          'Invalid update request',
+        );
       }
     } else {
       const newQuestion = new Question({
@@ -178,7 +185,7 @@ const AddQuestion = async (req, res, next) => {
         answerExplaination,
         similarQuestions: similarQuestionsID,
       });
-      await newQuestion
+      newQuestion
         .save()
         .then(() => {
           similarQuestionsResponse.forEach((item) => {
@@ -209,7 +216,11 @@ const UpdateStatus = async (req, res, next) => {
     const level = { easy: 2, medium: 3, hard: 4 };
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     const question = await Question.findById(id);
-    const message = { text: '', icon: '', date: new Date().toLocaleDateString('en-GB', options) };
+    const message = {
+      text: '',
+      icon: '',
+      date: new Date().toLocaleDateString('en-GB', options),
+    };
 
     if (status === 'approved' && question.status === 'pending') {
       question.status = status;
@@ -218,23 +229,31 @@ const UpdateStatus = async (req, res, next) => {
       message.icon = 'check';
 
       const user = await User.findById(req.user._id);
-      // const user = await User.findById(userId);
 
       if (user.history) user.history.push(message);
       else user.history = [message];
 
-      const pointsMssg = { text: `You earned ${level[question.difficulty]} points`, icon: 'up', date: new Date().toLocaleDateString('en-GB', options) };
+      const pointsMssg = {
+        text: `You earned ${level[question.difficulty]} points`,
+        icon: 'up',
+        date: new Date().toLocaleDateString('en-GB', options),
+      };
       user.history.push(pointsMssg);
       user.points += level[question.difficulty];
 
-      await question.save()
+      await question
+        .save()
         .then(() => {})
         .catch((err) => {
           logger.error('Error :', err);
-          return apiResponse.ErrorResponse(res, 'Error while updating Question');
+          return apiResponse.ErrorResponse(
+            res,
+            'Error while updating Question',
+          );
         });
 
-      await user.save()
+      await user
+        .save()
         .then(() => apiResponse.successResponse(res, 'Question Status Updated'))
         .catch((err) => {
           logger.error('Error :', err);
@@ -249,23 +268,30 @@ const UpdateStatus = async (req, res, next) => {
       message.icon = 'reject';
 
       const user = await User.findById(req.user._id);
-      // const user = await User.findById(userId);
 
       if (user.history) user.history.push(message);
       else user.history = [message];
 
-      await user.save()
+      await user
+        .save()
         .then(() => {})
         .catch((err) => {
           logger.error('Error :', err);
-          return apiResponse.ErrorResponse(res, 'Error while updating Question');
+          return apiResponse.ErrorResponse(
+            res,
+            'Error while updating Question',
+          );
         });
 
-      await question.save()
+      await question
+        .save()
         .then(() => apiResponse.successResponse(res, 'Question feedback Updated'))
         .catch((err) => {
           logger.error('Error :', err);
-          return apiResponse.ErrorResponse(res, 'Error while updating Question');
+          return apiResponse.ErrorResponse(
+            res,
+            'Error while updating Question',
+          );
         });
     } else {
       return apiResponse.validationErrorWithData(res, 'Invalid status');
@@ -309,22 +335,29 @@ const SwitchQuestion = async (req, res, next) => {
 const Stats = async (req, res, next) => {
   try {
     const { id } = req.user;
-    // const { id } = req.query;
-    console.log(id);
+
     const total = await Question.countDocuments({
-      ...(req.user.userType === 'member' || req.userType === 'developer' ? { userId: id } : {}),
+      ...(req.user.userType === 'member' || req.userType === 'developer'
+        ? { userId: id }
+        : {}),
     });
     const approved = await Question.countDocuments({
       status: { $regex: 'approved', $options: 'i' },
-      ...(req.user.userType === 'member' || req.userType === 'developer' ? { userId: id } : {}),
+      ...(req.user.userType === 'member' || req.userType === 'developer'
+        ? { userId: id }
+        : {}),
     });
     const pending = await Question.countDocuments({
       status: { $regex: 'pending', $options: 'i' },
-      ...(req.user.userType === 'member' || req.userType === 'developer' ? { userId: id } : {}),
+      ...(req.user.userType === 'member' || req.userType === 'developer'
+        ? { userId: id }
+        : {}),
     });
     const rejected = await Question.countDocuments({
       status: { $regex: 'rejected', $options: 'i' },
-      ...(req.user.userType === 'member' || req.userType === 'developer' ? { userId: id } : {}),
+      ...(req.user.userType === 'member' || req.userType === 'developer'
+        ? { userId: id }
+        : {}),
     });
     // number of question contributed per day
     const contribute = await Question.aggregate([
@@ -356,24 +389,14 @@ const Stats = async (req, res, next) => {
       },
     ]);
     // pie chart data
-    const twelve = await Question.countDocuments({
-      standard: 12,
-    });
-    const tenth = await Question.countDocuments({
-      standard: 10,
-    });
+    const twelve = await Question.countDocuments({ standard: 12 });
+    const tenth = await Question.countDocuments({ standard: 10 });
     const totalQuestions = await Question.countDocuments({});
 
     // Standard wise question distribution
     const classDistribution = [
-      {
-        name: '12th',
-        percent: ((twelve / totalQuestions) * 100).toFixed(2),
-      },
-      {
-        name: '10th',
-        percent: ((tenth / totalQuestions) * 100).toFixed(2),
-      },
+      { name: '12th', percent: ((twelve / totalQuestions) * 100).toFixed(2) },
+      { name: '10th', percent: ((tenth / totalQuestions) * 100).toFixed(2) },
     ];
 
     await apiResponse.successResponseWithData(res, 'Success', {
@@ -400,7 +423,10 @@ const QuestionsPerTopic = async (req, res, next) => {
     const ans = [];
     let cnt = 0;
     topics.forEach(async (topic) => {
-      const count = await Question.countDocuments({ topic: { $in: [topic] }, status: { $regex: 'approved', $options: 'i' } });
+      const count = await Question.countDocuments({
+        topic: { $in: [topic] },
+        status: { $regex: 'approved', $options: 'i' },
+      });
       ans.push({ standard, subject, topic, count });
       cnt += 1;
       if (cnt === topics.length) {
@@ -418,10 +444,12 @@ const DeleteQuestion = async (req, res, next) => {
     const { id } = req.params;
     const question = await Question.findById(id);
     if (question.status !== 'approved') {
-      await Question.findByIdAndDelete(id)
-        .then(() => apiResponse.successResponse(res, 'Question deleted successfully'));
+      await Question.findByIdAndDelete(id).then(() => apiResponse.successResponse(res, 'Question deleted successfully'));
     } else {
-      return apiResponse.validationErrorWithData(res, 'Approved question cannot be deleted');
+      return apiResponse.validationErrorWithData(
+        res,
+        'Approved question cannot be deleted',
+      );
     }
   } catch (err) {
     logger.error('Error :', err);
