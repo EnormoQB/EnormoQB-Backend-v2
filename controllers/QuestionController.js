@@ -82,6 +82,7 @@ const AddQuestion = async (req, res, next) => {
       userId,
       answer,
       answerExplaination,
+      id,
     } = JSON.parse(req.body.data);
 
     if (
@@ -127,35 +128,67 @@ const AddQuestion = async (req, res, next) => {
 
     const similarQuestionsID = similarQuestionsResponse.map((item) => item._id);
 
-    const newQuestion = new Question({
-      _id: questionId,
-      question,
-      options,
-      answer,
-      standard,
-      subject,
-      topic: topics,
-      imageKey,
-      difficulty,
-      userId,
-      answerExplaination,
-      similarQuestions: similarQuestionsID,
-    });
-    await newQuestion
-      .save()
-      .then(() => {
-        similarQuestionsResponse.forEach((item) => {
-          const { similarQuestions = [] } = item;
-          similarQuestions.push(questionId);
-          item.similarQuestions = similarQuestions;
-          Question.findByIdAndUpdate(item._id, item).exec();
+    if (id !== null) {
+      await Question.findByIdAndUpdate(
+        id,
+        {
+          standard,
+          topic: topics,
+          options,
+          imageKey,
+          question,
+          subject,
+          difficulty,
+          answer,
+          answerExplaination,
+          similarQuestions: similarQuestionsID,
+          status: 'pending',
+        },
+      )
+        .then(() => {
+          similarQuestionsResponse.forEach((item) => {
+            const { similarQuestions = [] } = item;
+            similarQuestions.push(questionId);
+            item.similarQuestions = similarQuestions;
+            Question.findByIdAndUpdate(item._id, item).exec();
+          });
+          apiResponse.successResponse(res, 'Successfully added');
+        })
+        .catch((err) => {
+          logger.error('Error :', err);
+          return apiResponse.ErrorResponse(res, 'Error while adding Question');
         });
-        apiResponse.successResponse(res, 'Successfully added');
-      })
-      .catch((err) => {
-        logger.error('Error :', err);
-        return apiResponse.ErrorResponse(res, 'Error while adding Question');
+    } else {
+      const newQuestion = new Question({
+        _id: questionId,
+        question,
+        options,
+        answer,
+        standard,
+        subject,
+        topic: topics,
+        imageKey,
+        difficulty,
+        userId: req.user._id,
+        answerExplaination,
+        similarQuestions: similarQuestionsID,
       });
+      await newQuestion
+        .save()
+        .then(() => {
+          similarQuestionsResponse.forEach((item) => {
+            const { similarQuestions = [] } = item;
+            similarQuestions.push(questionId);
+            item.similarQuestions = similarQuestions;
+            Question.findByIdAndUpdate(item._id, item).exec();
+          });
+          apiResponse.successResponse(res, 'Successfully added');
+        })
+        .catch((err) => {
+          logger.error('Error :', err);
+          return apiResponse.ErrorResponse(res, 'Error while adding Question');
+        });
+    }
   } catch (error) {
     logger.error('Error :', error);
     apiResponse.ErrorResponse(res, error);
