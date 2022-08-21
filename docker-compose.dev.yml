@@ -5,8 +5,26 @@ services:
     command: npm run dev
     ports:
       - "5000:5000"
+    env_file:
+      - ./.env
     environment:
       - NODE_ENV=development
       - REDIS_HOST=redis
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    build: .
+    restart: always
+    depends_on:
+      - redis
+      - text_similarity
+
+  redis:
+    image: 'redis'
+    volumes:
+      - ./volumes/redis:/data
+
+  text_similarity:
+    image: 'dishabhardwaj/textsimilarity_app:latest'
+
+volumes:
+  redis_data:
