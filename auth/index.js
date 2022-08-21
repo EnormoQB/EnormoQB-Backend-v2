@@ -5,6 +5,7 @@ const apiResponse = require('../helpers/apiResponse');
 const User = require('../models/UserModel');
 const PendingInvites = require('../models/PendingInvites');
 const logger = require('../helpers/winston');
+const Question = require('../models/QuestionModel');
 
 const router = express.Router();
 
@@ -103,8 +104,8 @@ router.get('/user', (req, res) => {
 
 router.post('/toggleStatus', async (req, res, next) => {
   try {
-    const { id } = req.body;
-    const userDetails = await User.findById(id);
+    const { userId, quesId } = req.body;
+    const userDetails = await User.findById(userId);
 
     if (userDetails.status.value === 'freezed') {
       userDetails.status = { ...userDetails.status, value: 'active' };
@@ -121,6 +122,11 @@ router.post('/toggleStatus', async (req, res, next) => {
       };
       userDetails.save();
     }
+
+    await Question.findByIdAndUpdate(quesId, {
+      status: 'rejected',
+      feedback: 'Reported',
+    });
 
     apiResponse.successResponse(res, 'Successful');
   } catch (error) {
