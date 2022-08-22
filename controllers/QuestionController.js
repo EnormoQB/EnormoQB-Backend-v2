@@ -220,24 +220,23 @@ const UpdateStatus = async (req, res, next) => {
       icon: '',
       date: new Date().toLocaleDateString('en-GB', options),
     };
+    const user = await User.findById(question.userId);
 
     if (status === 'approved' && question.status === 'pending') {
       question.status = status;
-
-      message.text = 'Your question has been approved';
-      message.icon = 'check';
-
-      const user = await User.findById(question.userId);
-
-      if (user.history) user.history.push(message);
-      else user.history = [message];
-
       const pointsMssg = {
         text: `You earned ${level[question.difficulty]} points`,
         icon: 'up',
         date: new Date().toLocaleDateString('en-GB', options),
       };
       user.history.push(pointsMssg);
+
+      message.text = 'Your question has been approved';
+      message.icon = 'check';
+
+      if (user.history) user.history.push(message);
+      else user.history = [message];
+
       user.points += level[question.difficulty];
 
       await question
@@ -265,8 +264,6 @@ const UpdateStatus = async (req, res, next) => {
 
       message.text = 'Your question has been rejected';
       message.icon = 'reject';
-
-      const user = await User.findById(question.userId);
 
       if (user.history) user.history.push(message);
       else user.history = [message];
