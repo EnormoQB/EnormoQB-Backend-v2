@@ -5,7 +5,7 @@ const logger = require('../helpers/winston');
 const QuestionPaper = require('../models/QuestionPaperModel');
 const { createPaper } = require('../queues/index');
 
-const helperFn = async (topic, type, ans, tough, filter, idList, limit = 0) => {
+const helperFn = async (type, ans, tough, filter, idList, topic = null, limit = 0) => {
   limit =
     limit === 0
       ? Math.floor(Math.random() * Math.min(topic.count + 1, type + 1))
@@ -59,30 +59,31 @@ const GeneratePreview = async (req, res, next) => {
         topic.count = topicsPerQuestion;
       }
     });
-
+    console.log(topicsDistribution);
+    console.log(req.body);
     for (let i = 0; i < topicsDistribution.length; i += 1) {
       const topic = topicsDistribution[i];
       let y = 0;
       filter.topic = { $in: topic.name };
       while (topic.count > 0 && y < 3) {
         if (topic.count > 0 && easy > 0) {
-          len = await helperFn(topic, easy, ans, 'easy', filter, idList);
+          len = await helperFn(easy, ans, 'easy', filter, idList, topic);
           easy -= len;
           topic.count -= len;
         }
         if (topic.count > 0 && medium > 0) {
-          len = await helperFn(topic, medium, ans, 'medium', filter, idList);
+          len = await helperFn(medium, ans, 'medium', filter, idList, topic);
           medium -= len;
           topic.count -= len;
         }
         if (topic.count > 0 && hard > 0) {
           len = await helperFn(
-            topic,
             hard,
             ans,
             'hard',
             filter,
             idList,
+            topic,
             topic.count,
           );
           hard -= len;
@@ -95,9 +96,28 @@ const GeneratePreview = async (req, res, next) => {
     totalQuestions -= ans.length;
     if (totalQuestions > 0) {
       filter.topic = { $in: topicsDistribution.map((topic) => topic.name) };
-      filter.difficulty = { $in: ['easy', 'medium', 'hard'] };
-      const items = await Question.find(filter).limit(totalQuestions);
-      items.forEach((item) => ans.push(item));
+      console.log(filter);
+      let items;
+      if (easy > 0) {
+        len = await helperFn(easy, ans, 'easy', filter, idList, null, easy);
+        totalQuestions -= len;
+      }
+      if (medium > 0) {
+        len = await helperFn(easy, ans, 'medium', filter, idList, null, medium);
+        totalQuestions -= len;
+      }
+      if (hard > 0) {
+        len = await helperFn(easy, ans, 'hard', filter, idList, null, hard);
+        totalQuestions -= len;
+      }
+      if (totalQuestions > 0) {
+        filter.difficulty = { $in: ['easy', 'medium', 'hard'] };
+        items = await Question.find(filter).limit(totalQuestions);
+        items.forEach((item) => {
+          ans.push(item);
+          idList.push(item._id);
+        });
+      }
     }
 
     return apiResponse.successResponseWithData(
