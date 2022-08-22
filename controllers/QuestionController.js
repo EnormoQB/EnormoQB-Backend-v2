@@ -210,7 +210,7 @@ const AddQuestion = async (req, res, next) => {
 const UpdateStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { status, userId } = req.body;
+    const { status } = req.body;
 
     const level = { easy: 2, medium: 3, hard: 4 };
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
@@ -227,7 +227,7 @@ const UpdateStatus = async (req, res, next) => {
       message.text = 'Your question has been approved';
       message.icon = 'check';
 
-      const user = await User.findById(req.user._id);
+      const user = await User.findById(question.userId);
 
       if (user.history) user.history.push(message);
       else user.history = [message];
@@ -266,7 +266,7 @@ const UpdateStatus = async (req, res, next) => {
       message.text = 'Your question has been rejected';
       message.icon = 'reject';
 
-      const user = await User.findById(req.user._id);
+      const user = await User.findById(question.userId);
 
       if (user.history) user.history.push(message);
       else user.history = [message];
