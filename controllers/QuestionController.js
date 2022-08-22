@@ -336,25 +336,25 @@ const Stats = async (req, res, next) => {
     const { id } = req.user;
 
     const total = await Question.countDocuments({
-      ...(req.user.userType === 'member' || req.userType === 'developer'
+      ...(req.user.userType === 'member' || req.user.userType === 'developer'
         ? { userId: id }
         : {}),
     });
     const approved = await Question.countDocuments({
       status: { $regex: 'approved', $options: 'i' },
-      ...(req.user.userType === 'member' || req.userType === 'developer'
+      ...(req.user.userType === 'member' || req.user.userType === 'developer'
         ? { userId: id }
         : {}),
     });
     const pending = await Question.countDocuments({
       status: { $regex: 'pending', $options: 'i' },
-      ...(req.user.userType === 'member' || req.userType === 'developer'
+      ...(req.user.userType === 'member' || req.user.userType === 'developer'
         ? { userId: id }
         : {}),
     });
     const rejected = await Question.countDocuments({
       status: { $regex: 'rejected', $options: 'i' },
-      ...(req.user.userType === 'member' || req.userType === 'developer'
+      ...(req.user.userType === 'member' || req.user.userType === 'developer'
         ? { userId: id }
         : {}),
     });
