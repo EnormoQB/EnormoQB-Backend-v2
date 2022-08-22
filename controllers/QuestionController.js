@@ -366,6 +366,9 @@ const Stats = async (req, res, next) => {
             $gte: new Date('2022-03-01T00:00:00.000Z'),
             $lt: new Date(),
           },
+          ...(req.user.userType === 'member' || req.user.userType === 'developer'
+            ? { userId: id }
+            : {}),
         },
       },
       {
@@ -395,7 +398,6 @@ const Stats = async (req, res, next) => {
       { name: '12th', value: twelve },
       { name: '10th', value: tenth },
     ];
-
     await apiResponse.successResponseWithData(res, 'Success', {
       total,
       approved,
