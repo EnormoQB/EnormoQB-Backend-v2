@@ -1,21 +1,37 @@
 version: '3'
 
 services:
+  redis:
+    image: 'redis'
+    volumes:
+      - ./volumes/redis:/data
+
+  text_similarity:
+    image: 'dishabhardwaj/textsimilarity_app:latest'
+
   app_server:
     networks:
       default:
     ports:
       - "12400-12500:8989"
+    build: .
     command: npm start
-    volumes:
-      - ./logs:/var/log
     environment:
       - MONGODB_URL=mongodb://mongo1:27017,mongo2:27018,mongo3:27019/enormoDB?retryWrites=true&w=majority
+      - REDIS_HOST=redis
     depends_on:
       - mongo-setup
       - mongo1
       - mongo2
       - mongo3
+      - redis
+      - text_similarity
+    env_file:
+      - ./.env
+    restart: always
+    volumes:
+      - ./logs:/var/log
+
   
   app_nginx:
     image: nginx:latest
