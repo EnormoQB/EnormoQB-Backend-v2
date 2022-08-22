@@ -366,7 +366,8 @@ const Stats = async (req, res, next) => {
             $gte: new Date('2022-03-01T00:00:00.000Z'),
             $lt: new Date(),
           },
-          ...(req.user.userType === 'member' || req.user.userType === 'developer'
+          ...(req.user.userType === 'member' ||
+          req.user.userType === 'developer'
             ? { userId: id }
             : {}),
         },
@@ -389,9 +390,17 @@ const Stats = async (req, res, next) => {
       },
     ]);
     // pie chart data
-    const twelve = await Question.countDocuments({ standard: 12 });
-    const tenth = await Question.countDocuments({ standard: 10 });
-    const totalQuestions = await Question.countDocuments({});
+    const twelve = await Question.countDocuments({
+      standard: 12,
+      status: { $regex: 'approved', $options: 'i' },
+    });
+    const tenth = await Question.countDocuments({
+      standard: 10,
+      status: { $regex: 'approved', $options: 'i' },
+    });
+    const totalQuestions = await Question.countDocuments({
+      status: { $regex: 'approved', $options: 'i' },
+    });
 
     // Standard wise question distribution
     const classDistribution = [

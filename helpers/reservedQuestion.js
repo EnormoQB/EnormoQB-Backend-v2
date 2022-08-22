@@ -1,21 +1,5 @@
 exports.reservedQuestions = [
   {
-    question: 'Acid rain happens because',
-    options: ['Sun heats up the upper layer of the atmosphere', 'burning of fossil fuels releases oxides of carbon, nitrogen and sulphur in the atmosphere', 'electrical charges are produced due to friction amongst clouds', 'earth atmosphere contains acids'],
-    answer: 'burning of fossil fuels releases oxides of carbon, nitrogen and sulphur in the atmosphere',
-    status: 'pending',
-    standard: '10',
-    topic: ['Sources of energy'],
-    subject: 'Science',
-    imageKey: null,
-    difficulty: 'easy',
-    userId: '62d3a759e485f500120e2ffd',
-    answerExplanation: null,
-    feedback: null,
-    createdAt: '2022-08-09 20:19:38.289418+00:00',
-    updatedAt: '2022-08-09 20:19:38.289418+00:00',
-  },
-  {
     question: 'Select the important factor for the site selection of a thermal power plant.',
     options: ['Distance from the populated area', 'Availability of fuel', 'Availability of water', 'Cost of plant'],
     answer: 'Availability of water',
