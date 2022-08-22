@@ -9,11 +9,10 @@ const { checkAuthentication } = require('../middlewares');
 
 const app = express();
 
-// app.use('/questions/', checkAuthentication, QuestionsRouter);
-app.use('/questions/', QuestionsRouter);
-app.use('/questionPapers/', QuestionPapersRouter);
+app.use('/questions/', checkAuthentication, QuestionsRouter);
+app.use('/questionPapers/', checkAuthentication, QuestionPapersRouter);
 app.use('/assets/', AssetsRouter);
 app.use('/subjectsData/', SubjectRouter);
-app.use('/mail/', MailRouter);
+app.use('/mail/', checkAuthentication, MailRouter);
 
 module.exports = app;
