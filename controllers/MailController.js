@@ -6,7 +6,15 @@ const User = require('../models/UserModel');
 const RequestContributions = async (req, res, next) => {
   try {
     const { topic, subject, standard } = req.query;
-    const users = (await User.find({})).map((user) => user.email);
+    const users = [
+      'apoorvd14@gmail.com',
+      'ankitoct01@gmail.com',
+      'disha2.bhardwaj@gmail.com',
+      'mahak.raju20@gmail.com',
+      'prakharsharma22@gmail.com',
+      'apoorvasingh130@gmail.com',
+      'support@enormoqb.tech',
+    ];
     const mailOptions = {
       from: '"EnormoQB" <enormoqb@gmail.com>',
       to: users.toString(),
