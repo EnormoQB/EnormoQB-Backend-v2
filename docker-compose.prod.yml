@@ -13,7 +13,8 @@ services:
     networks:
       default:
     ports:
-      - "12400-12500:8989"
+      - '12400-12500:8989'
+      - '465:465'
     build: .
     command: npm start
     environment:
@@ -32,7 +33,6 @@ services:
     volumes:
       - ./logs:/var/log
 
-  
   app_nginx:
     image: nginx:latest
     container_name: nginx
@@ -43,7 +43,7 @@ services:
       - 5000:80
     networks:
       default:
-    depends_on: 
+    depends_on:
       - app_server
 
   mongo-setup:

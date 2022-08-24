@@ -18,11 +18,11 @@ services:
     depends_on:
       - redis
       - text_similarity
-
     networks:
       default:
     ports:
-      - "12400-12500:8989"
+      - '12400-12500:8989'
+      - '465:465'
     command: npm start
     volumes:
       - ./logs:/var/log
@@ -37,7 +37,7 @@ services:
       - 5000:80
     networks:
       default:
-    depends_on: 
+    depends_on:
       - app_server
 
 volumes:
