@@ -22,7 +22,6 @@ services:
       default:
     ports:
       - '12400-12500:8989'
-      - '465:465'
     command: npm start
     volumes:
       - ./logs:/var/log

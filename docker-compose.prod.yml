@@ -14,7 +14,6 @@ services:
       default:
     ports:
       - '12400-12500:8989'
-      - '465:465'
     build: .
     command: npm start
     environment:
