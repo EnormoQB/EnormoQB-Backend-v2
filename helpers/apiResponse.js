@@ -42,7 +42,7 @@ exports.validationErrorWithData = (res, msg, data) => {
 
 exports.unauthorizedResponse = (res, msg) => {
   const data = {
-    status: 0,
+    status: 401,
     message: msg,
   };
   return res.status(401).json(data);
