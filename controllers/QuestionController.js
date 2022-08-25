@@ -451,6 +451,17 @@ const DeleteQuestion = async (req, res, next) => {
   }
 };
 
+// const update = async (req, res, next) => {
+//   const users = await User.find();
+//   users.forEach((user) => {
+//     User.findByIdAndUpdate(user._id, {
+//       userType: 'contributor',
+//       typeLastChanged: Date.now(),
+//     }).exec();
+//   });
+//   res.send(users);
+// };
+
 module.exports = {
   QuestionList,
   AddQuestion,
@@ -460,4 +471,5 @@ module.exports = {
   Stats,
   QuestionsPerTopic,
   DeleteQuestion,
+  // update,
 };

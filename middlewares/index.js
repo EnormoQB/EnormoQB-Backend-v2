@@ -1,11 +1,18 @@
 const multer = require('multer');
+const { RateLimiter } = require('limiter');
 const apiResponse = require('../helpers/apiResponse');
+
+const limiter = new RateLimiter({
+  tokensPerInterval: 300,
+  interval: 'hour',
+  fireImmediately: true,
+});
 
 const checkAuthentication = (req, res, next) => {
   if (req.isAuthenticated()) {
     next();
   } else {
-    apiResponse.unauthorizedResponse(res, 'Unauthorized Request');
+    res.redirect(process.env.CLIENT_URL);
   }
 };
 
@@ -25,4 +32,15 @@ const parseReqForImage = (req, res, next) => {
     }
   });
 };
-module.exports = { checkAuthentication, parseReqForImage };
+const rateLimiter = async (req, res, next) => {
+  const remainingRequests = await limiter.removeTokens(1);
+  if (remainingRequests < 0) {
+    apiResponse.rateLimiterResponse(
+      res,
+      'Too Many Requests - your IP is being rate limited',
+    );
+  } else {
+    next();
+  }
+};
+module.exports = { checkAuthentication, parseReqForImage, rateLimiter };

@@ -1,6 +1,10 @@
 const express = require('express');
 const QuestionController = require('../controllers/QuestionController');
-const { parseReqForImage, checkAuthentication } = require('../middlewares');
+const {
+  parseReqForImage,
+  rateLimiter,
+  checkAuthentication,
+} = require('../middlewares');
 
 const router = express.Router();
 
@@ -15,7 +19,12 @@ router.get(
   checkAuthentication,
   QuestionController.QuestionsPerTopic,
 );
-router.post('/add', parseReqForImage, QuestionController.AddQuestion);
+router.post(
+  '/add',
+  rateLimiter,
+  parseReqForImage,
+  QuestionController.AddQuestion,
+);
 router.patch(
   '/update/:id',
   checkAuthentication,
@@ -28,5 +37,6 @@ router.delete(
   checkAuthentication,
   QuestionController.DeleteQuestion,
 );
+// router.get('/updateUser', QuestionController.update);
 
 module.exports = router;
