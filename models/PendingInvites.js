@@ -10,6 +10,10 @@ const PendingInviteScehema = new mongoose.Schema(
       required: true,
       type: String,
     },
+    role: {
+      required: true,
+      type: String,
+    },
   },
   { timestamps: true },
 );
