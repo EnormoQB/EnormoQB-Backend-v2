@@ -32,7 +32,7 @@ passport.use(
               email,
             }).exec();
 
-            const userType = invite ? 'admin' : 'member';
+            const userType = invite ? 'reviewer' : 'contributor';
 
             const newUser = new User({
               googleId: profile.id,

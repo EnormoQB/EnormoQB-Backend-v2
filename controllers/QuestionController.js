@@ -38,7 +38,7 @@ const QuestionList = async (req, res, next) => {
         : {}),
       ...(subject ? { subject: { $regex: subject, $options: 'i' } } : {}),
       ...(status ? { status: { $regex: status, $options: 'i' } } : {}),
-      ...(req.user.userType === 'member' ? { userId: id } : {}),
+      ...(req.user.userType === 'contributor' ? { userId: id } : {}),
       ...(topics && topics.length !== 0 ? { topic: { $in: [topics] } } : {}),
     };
 
@@ -333,19 +333,19 @@ const Stats = async (req, res, next) => {
     const { id } = req.user;
 
     const total = await Question.countDocuments({
-      ...(req.user.userType === 'member' ? { userId: id } : {}),
+      ...(req.user.userType === 'contributor' ? { userId: id } : {}),
     });
     const approved = await Question.countDocuments({
       status: { $regex: 'approved', $options: 'i' },
-      ...(req.user.userType === 'member' ? { userId: id } : {}),
+      ...(req.user.userType === 'contributor' ? { userId: id } : {}),
     });
     const pending = await Question.countDocuments({
       status: { $regex: 'pending', $options: 'i' },
-      ...(req.user.userType === 'member' ? { userId: id } : {}),
+      ...(req.user.userType === 'contributor' ? { userId: id } : {}),
     });
     const rejected = await Question.countDocuments({
       status: { $regex: 'rejected', $options: 'i' },
-      ...(req.user.userType === 'member' ? { userId: id } : {}),
+      ...(req.user.userType === 'contributor' ? { userId: id } : {}),
     });
     // number of question contributed per day
     const contribute = await Question.aggregate([
@@ -355,7 +355,7 @@ const Stats = async (req, res, next) => {
             $gte: new Date('2022-03-01T00:00:00.000Z'),
             $lt: new Date(),
           },
-          ...(req.user.userType === 'member' ? { userId: id } : {}),
+          ...(req.user.userType === 'contributor' ? { userId: id } : {}),
         },
       },
       {
