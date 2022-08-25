@@ -47,3 +47,11 @@ exports.unauthorizedResponse = (res, msg) => {
   };
   return res.status(401).json(data);
 };
+
+exports.rateLimiterResponse = (res, msg) => {
+  const data = {
+    status: 429,
+    message: msg,
+  };
+  return res.status(429).json(data);
+};
