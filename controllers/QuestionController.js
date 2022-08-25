@@ -38,7 +38,12 @@ const QuestionList = async (req, res, next) => {
         : {}),
       ...(subject ? { subject: { $regex: subject, $options: 'i' } } : {}),
       ...(status ? { status: { $regex: status, $options: 'i' } } : {}),
-      ...(req.user.userType === 'contributor' ? { userId: id } : {}),
+      ...(req.user.userType === 'contributor' ||
+      ((req.user.userType === 'reviewer' ||
+        req.user.userType === 'exam-setter') &&
+        status !== 'pending')
+        ? { userId: id }
+        : {}),
       ...(topics && topics.length !== 0 ? { topic: { $in: [topics] } } : {}),
     };
 
