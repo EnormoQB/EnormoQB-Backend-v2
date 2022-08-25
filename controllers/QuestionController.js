@@ -180,7 +180,7 @@ const AddQuestion = async (req, res, next) => {
         topic: topics,
         imageKey,
         difficulty: difficulty.toLowerCase(),
-        userId: req.user._id,
+        userId: req.user ? req.user._id : null,
         answerExplaination,
         similarQuestions: similarQuestionsID,
       });
