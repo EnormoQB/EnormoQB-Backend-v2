@@ -5,7 +5,15 @@ const UserScehema = new mongoose.Schema(
     username: { required: true, type: String },
     email: { required: true, type: String },
     googleId: { required: true, type: String },
-    userType: { required: true, type: String },
+    userType: {
+      type: mongoose.Schema.Types.Mixed,
+      required: true,
+      default: {
+        role: 'contributor',
+        lastChanged: Date.now,
+        spanHours: '48',
+      },
+    },
     image: { required: true, type: String },
     questions: { type: mongoose.Schema.Types.Array, required: false },
     questionPaper: { type: mongoose.Schema.Types.Array, required: false },

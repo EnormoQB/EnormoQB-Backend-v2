@@ -4,10 +4,7 @@
     "es6": true,
     "node": true
   },
-  "extends": [
-    "airbnb-base",
-    "plugin:node/recommended"
-  ],
+  "extends": ["airbnb-base", "plugin:node/recommended"],
   "globals": {
     "Atomics": "readonly",
     "SharedArrayBuffer": "readonly"
@@ -25,6 +22,7 @@
     "operator-linebreak": "off",
     "object-curly-newline": "off",
     "no-await-in-loop": "off",
-    "no-param-reassign": "off"
+    "no-param-reassign": "off",
+    "new-cap": "off"
   }
 }

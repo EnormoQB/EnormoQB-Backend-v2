@@ -32,8 +32,6 @@ passport.use(
               email,
             }).exec();
 
-            const userType = invite ? 'reviewer' : 'contributor';
-
             const newUser = new User({
               googleId: profile.id,
               username: profile.displayName || '',
@@ -41,7 +39,11 @@ passport.use(
                 ? profile.emails[0].value
                 : ''
               ).toLowerCase(),
-              userType,
+              userType: {
+                role: invite ? 'reviewer' : 'contributor',
+                lastChanged: new Date(),
+                spanHours: '48',
+              },
               privileges: [],
               image:
                 profile.photos && profile.photos[0].value
