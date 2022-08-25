@@ -37,5 +37,6 @@ router.delete(
   checkAuthentication,
   QuestionController.DeleteQuestion,
 );
+// router.get('/updateUser', QuestionController.update);
 
 module.exports = router;
