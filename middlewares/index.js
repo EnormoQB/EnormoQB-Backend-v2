@@ -3,7 +3,7 @@ const { RateLimiter } = require('limiter');
 const apiResponse = require('../helpers/apiResponse');
 
 const limiter = new RateLimiter({
-  tokensPerInterval: 150,
+  tokensPerInterval: 300,
   interval: 'hour',
   fireImmediately: true,
 });
@@ -35,7 +35,7 @@ const parseReqForImage = (req, res, next) => {
 const rateLimiter = async (req, res, next) => {
   const remainingRequests = await limiter.removeTokens(1);
   if (remainingRequests < 0) {
-    apiResponse.rateLimiterResponse('Too Many Requests - your IP is being rate limited');
+    apiResponse.rateLimiterResponse(res, 'Too Many Requests - your IP is being rate limited');
   } else {
     next();
   }
