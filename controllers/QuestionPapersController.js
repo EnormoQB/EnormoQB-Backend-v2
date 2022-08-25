@@ -1,4 +1,6 @@
 const moment = require('moment');
+const csvParser = require('csv-parser');
+const streamifier = require('streamifier');
 const apiResponse = require('../helpers/apiResponse');
 const Question = require('../models/QuestionModel');
 const logger = require('../helpers/winston');
@@ -236,9 +238,43 @@ const UserGeneratedPaper = async (req, res, next) => {
   }
 };
 
+const ParseCsv = async (req, res, next) => {
+  try {
+    let results = [];
+    streamifier
+      .createReadStream(req.file.buffer)
+      .pipe(
+        csvParser({
+          headers: false,
+        }),
+      )
+      .on('data', (data) => results.push(data))
+      .on('end', () => {
+        try {
+          if (Array.isArray(results)) {
+            results = results.map((resultItem) => ({
+              ...resultItem,
+              0: resultItem[0].trim(),
+            }));
+          }
+        } catch (e) {
+          console.error(e);
+        }
+
+        apiResponse.successResponseWithData(res, 'Parsing Successful', results);
+      })
+      .on('error', () => {
+        apiResponse.ErrorResponse(res, 'Error occured while parsing csv');
+      });
+  } catch (e) {
+    next(e);
+  }
+};
+
 module.exports = {
   GeneratePreview,
   GeneratePaperModel,
   PreviousYear,
   UserGeneratedPaper,
+  ParseCsv,
 };
