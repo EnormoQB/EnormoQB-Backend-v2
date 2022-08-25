@@ -1,4 +1,6 @@
 const multer = require('multer');
+const csvParser = require('csv-parser');
+const streamifier = require('streamifier');
 const { RateLimiter } = require('limiter');
 const apiResponse = require('../helpers/apiResponse');
 
@@ -12,7 +14,7 @@ const checkAuthentication = (req, res, next) => {
   if (req.isAuthenticated()) {
     next();
   } else {
-    res.redirect(process.env.CLIENT_URL);
+    apiResponse.unauthorizedResponse(res, 'Unauthorized Request');
   }
 };
 
@@ -43,4 +45,38 @@ const rateLimiter = async (req, res, next) => {
     next();
   }
 };
+
+const ParseCsv = async (req, res, next) => {
+  try {
+    let results = [];
+    streamifier
+      .createReadStream(req.file.buffer)
+      .pipe(
+        csvParser({
+          headers: false,
+        }),
+      )
+      .on('data', (data) => results.push(data))
+      .on('end', () => {
+        try {
+          if (Array.isArray(results)) {
+            results = results.map((resultItem) => ({
+              ...resultItem,
+              0: resultItem[0].trim(),
+            }));
+          }
+        } catch (e) {
+          console.error(e);
+        }
+
+        apiResponse.successResponseWithData(res, 'Parsing Successful', results);
+      })
+      .on('error', () => {
+        apiResponse.ErrorResponse(res, 'Error occured while parsing csv');
+      });
+  } catch (e) {
+    next(e);
+  }
+};
+
 module.exports = { checkAuthentication, parseReqForImage, rateLimiter };
