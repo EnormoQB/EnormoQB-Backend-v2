@@ -7,10 +7,16 @@ const router = express.Router();
 router.get('/reserved', QuestionController.ReservedQuestions);
 router.get('/list', QuestionController.QuestionList);
 router.get('/perTopic', QuestionController.QuestionsPerTopic);
-router.post('/add', rateLimiter, parseReqForImage, QuestionController.AddQuestion);
+router.post(
+  '/add',
+  rateLimiter,
+  parseReqForImage,
+  QuestionController.AddQuestion,
+);
 router.patch('/update/:id', QuestionController.UpdateStatus);
 router.get('/switch', QuestionController.SwitchQuestion);
 router.get('/stats', QuestionController.Stats);
 router.delete('/delete/:id', QuestionController.DeleteQuestion);
+router.get('/userIdUpdate/', QuestionController.userIdUpdate);
 
 module.exports = router;
