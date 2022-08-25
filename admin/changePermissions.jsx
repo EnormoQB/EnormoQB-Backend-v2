@@ -6,6 +6,7 @@ import {
   Input,
   Label,
   Text,
+  Radio,
 } from '@admin-bro/design-system';
 import { ApiClient, useNotice } from 'admin-bro';
 
@@ -14,6 +15,7 @@ const CreateAdmin = (props) => {
   const sendNotice = useNotice();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState('exam-setter');
 
   const handleCreate = () => {
     try {
@@ -52,6 +54,7 @@ const CreateAdmin = (props) => {
                   const data = new FormData();
                   data.append('name', name);
                   data.append('email', email);
+                  data.append('role', role);
                   api
                     .resourceAction({
                       resourceId: 'Pending Invites',
@@ -63,12 +66,13 @@ const CreateAdmin = (props) => {
                         ...res.data.notice,
                         message:
                           res.data.notice.type === 'success'
-                            ? 'Admin Created SuccessFully'
+                            ? 'Permissions Changed SuccessFully'
                             : res.data.notice.message,
                       };
                       sendNotice(Notice);
                       setName('');
                       setEmail('');
+                      setRole('exam-setter');
                     });
                 } else {
                   sendNotice({
@@ -77,6 +81,7 @@ const CreateAdmin = (props) => {
                   });
                   setName('');
                   setEmail('');
+                  setRole('exam-setter');
                 }
               });
           } else {
@@ -84,7 +89,8 @@ const CreateAdmin = (props) => {
 
             const updatedData = {
               ...data.records[0].params,
-              userType: 'admin',
+              userType: role,
+              typeLastChanged: new Date(),
             };
             for (var key in updatedData) {
               form_data.append(key, updatedData[key]);
@@ -101,12 +107,13 @@ const CreateAdmin = (props) => {
                   ...res.data.notice,
                   message:
                     res.data.notice.type === 'success'
-                      ? 'Admin Created SuccessFully'
+                      ? 'Permissions Changed SuccessFully'
                       : res.data.notice.message,
                 };
                 sendNotice(Notice);
                 setName('');
                 setEmail('');
+                setRole('exam-setter');
               });
           }
         });
@@ -118,7 +125,7 @@ const CreateAdmin = (props) => {
   return (
     <Box width={1 / 2} p="xl">
       <Text fontSize="h4" fontWeight="bold" mb="lg">
-        CREATE ADMIN
+        CHANGE PERMISSIONS
       </Text>
       <FormGroup>
         <Label required>Name</Label>
@@ -126,9 +133,48 @@ const CreateAdmin = (props) => {
         <Label mt="lg" required>
           Email
         </Label>
-        <Input value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Input
+          mb="lg"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <Label mt="sm" required>
+          Role
+        </Label>
+        <Box mt="sm" flex>
+          <Box flexDirection="column" marginRight={15}>
+            <Radio
+              onChange={() => setRole('exam-setter')}
+              id="setter"
+              checked={role === 'exam-setter'}
+            />
+            <Label inline htmlFor="setter" ml="default">
+              Exam Setter
+            </Label>
+          </Box>
+          <Box flexDirection="column" marginRight={15}>
+            <Radio
+              onChange={() => setRole('reviewer')}
+              id="reviewer"
+              checked={role === 'reviewer'}
+            />
+            <Label inline htmlFor="reviewer" ml="default">
+              Reviewer
+            </Label>
+          </Box>
+          <Box flexDirection="column" marginRight={15}>
+            <Radio
+              onChange={() => setRole('contributor')}
+              id="contributor"
+              checked={role === 'contributor'}
+            />
+            <Label inline htmlFor="contributor" ml="default">
+              Contributor
+            </Label>
+          </Box>
+        </Box>
         <Button onClick={handleCreate} color="white" bg="primary100" mt="xl">
-          Create Admin
+          Change Permissions
         </Button>
       </FormGroup>
     </Box>

@@ -32,7 +32,7 @@ passport.use(
               email,
             }).exec();
 
-            const userType = invite ? 'admin' : 'member';
+            const userType = invite ? invite.role : 'contributor';
             const typeLastChanged = Date.now();
 
             const newUser = new User({

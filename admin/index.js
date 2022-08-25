@@ -20,9 +20,9 @@ const initializeAdmin = (sessionConfig) => {
       logo: `${process.env.BASE_PATH}logo.svg`,
     },
     pages: {
-      'Create Admin': {
-        label: 'Create Admin',
-        component: AdminBro.bundle('./createAdminPage'),
+      'Change Permissions': {
+        label: 'Change Permissions',
+        component: AdminBro.bundle('./changePermissions'),
       },
     },
   });
