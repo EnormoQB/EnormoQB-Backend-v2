@@ -1,5 +1,7 @@
 const moment = require('moment');
 const fetch = require('node-fetch');
+const csvParser = require('csv-parser');
+const streamifier = require('streamifier');
 const apiResponse = require('../helpers/apiResponse');
 const Question = require('../models/QuestionModel');
 const logger = require('../helpers/winston');
@@ -181,7 +183,11 @@ const languageConverter = async (req, res, next) => {
       }
       result.push(obj);
     }
-    apiResponse.successResponseWithData(res, 'Successfully converted to the given language', result);
+    apiResponse.successResponseWithData(
+      res,
+      'Successfully converted to the given language',
+      result,
+    );
   } catch (error) {
     logger.error('Error :', error);
     apiResponse.ErrorResponse(res, error);
@@ -292,10 +298,44 @@ const UserGeneratedPaper = async (req, res, next) => {
   }
 };
 
+const ParseCsv = async (req, res, next) => {
+  try {
+    let results = [];
+    streamifier
+      .createReadStream(req.file.buffer)
+      .pipe(
+        csvParser({
+          headers: false,
+        }),
+      )
+      .on('data', (data) => results.push(data))
+      .on('end', () => {
+        try {
+          if (Array.isArray(results)) {
+            results = results.map((resultItem) => ({
+              ...resultItem,
+              0: resultItem[0].trim(),
+            }));
+          }
+        } catch (e) {
+          console.error(e);
+        }
+
+        apiResponse.successResponseWithData(res, 'Parsing Successful', results);
+      })
+      .on('error', () => {
+        apiResponse.ErrorResponse(res, 'Error occured while parsing csv');
+      });
+  } catch (e) {
+    next(e);
+  }
+};
+
 module.exports = {
   GeneratePreview,
   GeneratePaperModel,
   PreviousYear,
   UserGeneratedPaper,
   languageConverter,
+  ParseCsv,
 };

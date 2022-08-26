@@ -12,7 +12,7 @@ const checkAuthentication = (req, res, next) => {
   if (req.isAuthenticated()) {
     next();
   } else {
-    res.redirect(process.env.CLIENT_URL);
+    apiResponse.unauthorizedResponse(res, 'Unauthorized Request');
   }
 };
 
@@ -32,6 +32,7 @@ const parseReqForImage = (req, res, next) => {
     }
   });
 };
+
 const rateLimiter = async (req, res, next) => {
   const remainingRequests = await limiter.removeTokens(1);
   if (remainingRequests < 0) {
@@ -43,4 +44,28 @@ const rateLimiter = async (req, res, next) => {
     next();
   }
 };
-module.exports = { checkAuthentication, parseReqForImage, rateLimiter };
+
+const parseReqForCsv = (req, res, next) => {
+  const multerUpload = multer({
+    limits: { fileSize: 100000 },
+  });
+
+  const multerFn = multerUpload.single('csvFile');
+  multerFn(req, res, (err) => {
+    if (err instanceof multer) {
+      res.status(500).send({
+        status: 500,
+        message: err.message,
+      });
+    } else {
+      next(err);
+    }
+  });
+};
+
+module.exports = {
+  checkAuthentication,
+  parseReqForImage,
+  rateLimiter,
+  parseReqForCsv,
+};
