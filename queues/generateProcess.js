@@ -1,6 +1,7 @@
 const PdfMake = require('pdfmake');
 const fs = require('fs');
 const imageDataURI = require('image-data-uri');
+const htmlToPdfmake = require('html-to-pdfmake');
 const { uploadFileToS3, downloadFromS3 } = require('../helpers/awsUtils');
 const QuestionPaper = require('../models/QuestionPaperModel');
 const { titleCase } = require('../helpers/functions');
@@ -12,6 +13,20 @@ const fonts = {
     bold: 'fonts/Roboto/Roboto-Medium.ttf',
     italics: 'fonts/Roboto/Roboto-Italic.ttf',
     bolditalics: 'fonts/Roboto/Roboto-MediumItalic.ttf',
+  },
+  Kannada: {
+    normal: 'fonts/Noto_Serif_kannada/static/NotoSeriffKannada-Thin.ttf',
+    bold: 'fonts/Noto_Serif_kannada/static/NotoSeriffKannada-ExtraLight.ttf',
+    italics: 'fonts/Noto_Serif_kannada/static/NotoSeriffKannada-Thin.ttf',
+    bolditalics:
+      'fonts/Noto_Serif_kannada/static/NotoSeriffKannada-ExtraLight.ttf',
+  },
+  Hindi: {
+    normal: 'fonts/Tiro_Devanagari_Hindi/TiroDevanagariHindi-Regular.ttf',
+    bold: 'fonts/Noto_Serif_kannada/static/TiroDevanagariHindi-Regular.ttf',
+    italics: 'fonts/Noto_Serif_kannada/static/TiroDevanagariHindi-Italic.ttf',
+    bolditalics:
+      'fonts/Noto_Serif_kannada/static/TiroDevanagariHindi-Italic.ttf',
   },
 };
 
@@ -113,12 +128,6 @@ const GeneratePDF = async (id) => {
         stack: [
           { text: 'General Instructions:', bold: true, italics: false },
           `${JSON.parse(instructions)}`,
-          // '1. The Question Paper contains three sections',
-          // '2. The first section contains the general JSON.parse(instructions)',
-          // '3. The second section contains the questions',
-          // '4. The third section contains the answers',
-          // 'All Questions carry equal marks',
-          // 'There is no negative marking',
         ],
         style: 'superMargin',
         italics: true,
@@ -131,6 +140,13 @@ const GeneratePDF = async (id) => {
             bold: true,
             margin: [0, 0, 0, 7],
           },
+          Object.prototype.hasOwnProperty.call(item, 'equation') &&
+          item.equation !== null
+            ? {
+              content: [
+                htmlToPdfmake(item.equation),
+              ],
+            } : ' ',
           Object.prototype.hasOwnProperty.call(item, 'imageKey') &&
           item.imageKey !== null
             ? {

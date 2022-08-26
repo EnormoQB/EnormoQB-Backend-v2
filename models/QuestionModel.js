@@ -7,6 +7,7 @@ const QuestionSchema = new mongoose.Schema(
     answer: { type: String, required: true },
     status: { type: String, required: true, default: 'pending' },
     standard: { type: String, required: true },
+    equation: { type: String, required: false },
     subject: { type: String, required: true },
     topic: { type: [String], required: true },
     userId: { type: String, required: false },

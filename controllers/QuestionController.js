@@ -90,6 +90,7 @@ const AddQuestion = async (req, res, next) => {
       answer,
       answerExplaination,
       id,
+      equation,
     } = JSON.parse(req.body.data);
 
     if (
@@ -146,6 +147,7 @@ const AddQuestion = async (req, res, next) => {
         subject,
         topic: topics,
         imageKey,
+        equation: equation || null,
         difficulty: difficulty.toLowerCase(),
         userId: req.user ? req.user._id : null,
         answerExplaination,
@@ -173,6 +175,7 @@ const AddQuestion = async (req, res, next) => {
           options,
           imageKey,
           question,
+          equation: equation || null,
           subject,
           difficulty: difficulty.toLowerCase(),
           answer,
@@ -210,6 +213,7 @@ const AddQuestion = async (req, res, next) => {
         answer,
         standard,
         subject,
+        equation: equation || null,
         topic: topics,
         imageKey,
         difficulty: difficulty.toLowerCase(),
