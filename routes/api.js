@@ -10,7 +10,8 @@ const { checkAuthentication } = require('../middlewares');
 const app = express();
 
 app.use('/questions/', QuestionsRouter);
-app.use('/questionPapers/', checkAuthentication, QuestionPapersRouter);
+// app.use('/questionPapers/', checkAuthentication, QuestionPapersRouter);
+app.use('/questionPapers/', QuestionPapersRouter);
 app.use('/assets/', AssetsRouter);
 app.use('/subjectsData/', SubjectRouter);
 app.use('/mail/', checkAuthentication, MailRouter);
