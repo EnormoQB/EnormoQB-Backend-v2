@@ -149,9 +149,7 @@ const AddQuestion = async (req, res, next) => {
       });
       newQuestion
         .save()
-        .then(() => {
-          apiResponse.successResponse(res, 'Successfully added');
-        })
+        .then(() => apiResponse.successResponse(res, 'Successfully added'))
         .catch((err) => {
           logger.error('Error :', err);
           return apiResponse.ErrorResponse(res, 'Error while adding Question');
@@ -179,13 +177,13 @@ const AddQuestion = async (req, res, next) => {
           status: 'pending',
         })
           .then(() => {
-            similarQuestionsResponse.forEach((item) => {
+            similarQuestionsResponse.similiar.forEach((item) => {
               const { similarQuestions = [] } = item;
               similarQuestions.push(questionId);
               item.similarQuestions = similarQuestions;
               Question.findByIdAndUpdate(item._id, item).exec();
             });
-            apiResponse.successResponse(res, 'Successfully added');
+            return apiResponse.successResponse(res, 'Successfully added');
           })
           .catch((err) => {
             logger.error('Error :', err);
@@ -218,13 +216,13 @@ const AddQuestion = async (req, res, next) => {
       newQuestion
         .save()
         .then(() => {
-          similarQuestionsResponse.forEach((item) => {
+          similarQuestionsResponse.similiar.forEach((item) => {
             const { similarQuestions = [] } = item;
             similarQuestions.push(questionId);
             item.similarQuestions = similarQuestions;
             Question.findByIdAndUpdate(item._id, item).exec();
           });
-          apiResponse.successResponse(res, 'Successfully added');
+          return apiResponse.successResponse(res, 'Successfully added');
         })
         .catch((err) => {
           logger.error('Error :', err);
