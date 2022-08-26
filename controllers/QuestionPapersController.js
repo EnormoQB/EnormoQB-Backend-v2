@@ -1,11 +1,22 @@
 const moment = require('moment');
+const fetch = require('node-fetch');
+const csvParser = require('csv-parser');
+const streamifier = require('streamifier');
 const apiResponse = require('../helpers/apiResponse');
 const Question = require('../models/QuestionModel');
 const logger = require('../helpers/winston');
 const QuestionPaper = require('../models/QuestionPaperModel');
 const { createPaper } = require('../queues/index');
 
-const helperFn = async (type, ans, tough, filter, idList, topic = null, limit = 0) => {
+const helperFn = async (
+  type,
+  ans,
+  tough,
+  filter,
+  idList,
+  topic = null,
+  limit = 0,
+) => {
   limit =
     limit === 0
       ? Math.floor(Math.random() * Math.min(topic.count + 1, type + 1))
@@ -132,6 +143,57 @@ const GeneratePreview = async (req, res, next) => {
   }
 };
 
+const languageConverter = async (req, res, next) => {
+  try {
+    const { questionList, lang } = req.body;
+    const result = [];
+    for (let i = 0; i < questionList.length; i += 1) {
+      const obj = {
+        question: '',
+        options: [],
+      };
+      await fetch(
+        'https://hf.space/embed/ai4bharat/IndicTrans-English2Indic/+/api/predict/',
+        {
+          method: 'POST',
+          body: JSON.stringify({ data: [`${questionList[i].question}`, lang] }),
+          headers: { 'Content-Type': 'application/json' },
+        },
+      )
+        .then((response) => response.json())
+        .then((jsonResponse) => {
+          // eslint-disable-next-line prefer-destructuring
+          obj.question = jsonResponse.data[0];
+        });
+      for (let y = 0; y < questionList[i].options.length; y += 1) {
+        await fetch(
+          'https://hf.space/embed/ai4bharat/IndicTrans-English2Indic/+/api/predict/',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              data: [`${questionList[i].options[y]}`, lang],
+            }),
+          },
+        )
+          .then((response) => response.json())
+          .then((jsonResponse) => {
+            obj.options.push(jsonResponse.data[0]);
+          });
+      }
+      result.push(obj);
+    }
+    apiResponse.successResponseWithData(
+      res,
+      'Successfully converted to the given language',
+      result,
+    );
+  } catch (error) {
+    logger.error('Error :', error);
+    apiResponse.ErrorResponse(res, error);
+    next(error);
+  }
+};
 const generatePaperName = (institute, standard, examType, board, subject) => {
   const date = moment().format('DD-MM-YYYY');
   if (institute && examType && standard && subject) {
@@ -236,9 +298,44 @@ const UserGeneratedPaper = async (req, res, next) => {
   }
 };
 
+const ParseCsv = async (req, res, next) => {
+  try {
+    let results = [];
+    streamifier
+      .createReadStream(req.file.buffer)
+      .pipe(
+        csvParser({
+          headers: false,
+        }),
+      )
+      .on('data', (data) => results.push(data))
+      .on('end', () => {
+        try {
+          if (Array.isArray(results)) {
+            results = results.map((resultItem) => ({
+              ...resultItem,
+              0: resultItem[0].trim(),
+            }));
+          }
+        } catch (e) {
+          console.error(e);
+        }
+
+        apiResponse.successResponseWithData(res, 'Parsing Successful', results);
+      })
+      .on('error', () => {
+        apiResponse.ErrorResponse(res, 'Error occured while parsing csv');
+      });
+  } catch (e) {
+    next(e);
+  }
+};
+
 module.exports = {
   GeneratePreview,
   GeneratePaperModel,
   PreviousYear,
   UserGeneratedPaper,
+  languageConverter,
+  ParseCsv,
 };

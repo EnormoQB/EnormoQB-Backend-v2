@@ -1,6 +1,4 @@
 const multer = require('multer');
-const csvParser = require('csv-parser');
-const streamifier = require('streamifier');
 const { RateLimiter } = require('limiter');
 const apiResponse = require('../helpers/apiResponse');
 
@@ -34,6 +32,7 @@ const parseReqForImage = (req, res, next) => {
     }
   });
 };
+
 const rateLimiter = async (req, res, next) => {
   const remainingRequests = await limiter.removeTokens(1);
   if (remainingRequests < 0) {
@@ -46,37 +45,27 @@ const rateLimiter = async (req, res, next) => {
   }
 };
 
-const ParseCsv = async (req, res, next) => {
-  try {
-    let results = [];
-    streamifier
-      .createReadStream(req.file.buffer)
-      .pipe(
-        csvParser({
-          headers: false,
-        }),
-      )
-      .on('data', (data) => results.push(data))
-      .on('end', () => {
-        try {
-          if (Array.isArray(results)) {
-            results = results.map((resultItem) => ({
-              ...resultItem,
-              0: resultItem[0].trim(),
-            }));
-          }
-        } catch (e) {
-          console.error(e);
-        }
+const parseReqForCsv = (req, res, next) => {
+  const multerUpload = multer({
+    limits: { fileSize: 100000 },
+  });
 
-        apiResponse.successResponseWithData(res, 'Parsing Successful', results);
-      })
-      .on('error', () => {
-        apiResponse.ErrorResponse(res, 'Error occured while parsing csv');
+  const multerFn = multerUpload.single('csvFile');
+  multerFn(req, res, (err) => {
+    if (err instanceof multer) {
+      res.status(500).send({
+        status: 500,
+        message: err.message,
       });
-  } catch (e) {
-    next(e);
-  }
+    } else {
+      next(err);
+    }
+  });
 };
 
-module.exports = { checkAuthentication, parseReqForImage, rateLimiter };
+module.exports = {
+  checkAuthentication,
+  parseReqForImage,
+  rateLimiter,
+  parseReqForCsv,
+};
