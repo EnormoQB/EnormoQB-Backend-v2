@@ -132,8 +132,32 @@ const AddQuestion = async (req, res, next) => {
     });
 
     const similarQuestionsResponse = JSON.parse(await response.text());
-
-    const similarQuestionsID = similarQuestionsResponse.map((item) => item._id);
+    if (similarQuestionsResponse.duplicate.length > 0) {
+      const newQuestion = new Question({
+        _id: questionId,
+        question,
+        options,
+        answer,
+        standard,
+        subject,
+        topic: topics,
+        imageKey,
+        difficulty: difficulty.toLowerCase(),
+        userId: req.user ? req.user._id : null,
+        answerExplaination,
+        status: ' rejected',
+      });
+      newQuestion
+        .save()
+        .then(() => apiResponse.successResponse(res, 'Successfully added'))
+        .catch((err) => {
+          logger.error('Error :', err);
+          return apiResponse.ErrorResponse(res, 'Error while adding Question');
+        });
+    }
+    const similarQuestionsID = similarQuestionsResponse.similiar.map(
+      (item) => item._id,
+    );
 
     if (id) {
       const ques = await Question.findById(id);
@@ -153,13 +177,13 @@ const AddQuestion = async (req, res, next) => {
           status: 'pending',
         })
           .then(() => {
-            similarQuestionsResponse.forEach((item) => {
+            similarQuestionsResponse.similiar.forEach((item) => {
               const { similarQuestions = [] } = item;
               similarQuestions.push(questionId);
               item.similarQuestions = similarQuestions;
               Question.findByIdAndUpdate(item._id, item).exec();
             });
-            apiResponse.successResponse(res, 'Successfully added');
+            return apiResponse.successResponse(res, 'Successfully added');
           })
           .catch((err) => {
             logger.error('Error :', err);
@@ -193,13 +217,13 @@ const AddQuestion = async (req, res, next) => {
       newQuestion
         .save()
         .then(() => {
-          similarQuestionsResponse.forEach((item) => {
+          similarQuestionsResponse.similiar.forEach((item) => {
             const { similarQuestions = [] } = item;
             similarQuestions.push(questionId);
             item.similarQuestions = similarQuestions;
             Question.findByIdAndUpdate(item._id, item).exec();
           });
-          apiResponse.successResponse(res, 'Successfully added');
+          return apiResponse.successResponse(res, 'Successfully added');
         })
         .catch((err) => {
           logger.error('Error :', err);
