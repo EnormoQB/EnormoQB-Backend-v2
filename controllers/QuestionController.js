@@ -132,7 +132,11 @@ const AddQuestion = async (req, res, next) => {
     });
 
     const similarQuestionsResponse = JSON.parse(await response.text());
-    if (similarQuestionsResponse.duplicate.length > 0) {
+    if (
+      similarQuestionsResponse &&
+      similarQuestionsResponse.duplicate &&
+      similarQuestionsResponse.duplicate.length > 0
+    ) {
       const newQuestion = new Question({
         _id: questionId,
         question,
