@@ -143,10 +143,9 @@ const GeneratePDF = async (id) => {
           Object.prototype.hasOwnProperty.call(item, 'equation') &&
           item.equation !== null
             ? {
-              content: [
-                htmlToPdfmake(item.equation),
-              ],
-            } : ' ',
+              text: [htmlToPdfmake(item.equation)],
+            }
+            : ' ',
           Object.prototype.hasOwnProperty.call(item, 'imageKey') &&
           item.imageKey !== null
             ? {
