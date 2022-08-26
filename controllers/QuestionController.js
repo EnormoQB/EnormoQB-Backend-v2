@@ -89,6 +89,7 @@ const AddQuestion = async (req, res, next) => {
       userId,
       answer,
       answerExplaination,
+      status,
       id,
     } = JSON.parse(req.body.data);
 
@@ -209,9 +210,10 @@ const AddQuestion = async (req, res, next) => {
         imageKey,
         difficulty: difficulty.toLowerCase(),
         userId:
-          typeof userId !== undefined ? userId : req.user ? req.user._id : null,
+          userId !== undefined ? userId : req.user ? req.user._id : null,
         answerExplaination,
         similarQuestions: similarQuestionsID,
+        status: status || 'pending',
       });
       newQuestion
         .save()
