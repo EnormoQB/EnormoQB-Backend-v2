@@ -152,6 +152,7 @@ const AddQuestion = async (req, res, next) => {
         userId: req.user ? req.user._id : null,
         answerExplaination,
         status: ' rejected',
+        feedback: 'Duplicate Question Present',
       });
       newQuestion
         .save()
