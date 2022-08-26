@@ -93,12 +93,7 @@ const AddQuestion = async (req, res, next) => {
       equation,
     } = JSON.parse(req.body.data);
 
-    if (
-      standard.length < 1 ||
-      answer.length < 1 ||
-      subject.length < 1 ||
-      topics.length < 1
-    ) {
+    if (standard.length < 1 || answer.length < 1 || subject.length < 1) {
       return apiResponse.validationErrorWithData(
         res,
         'Please send all the required fields',
@@ -219,7 +214,6 @@ const AddQuestion = async (req, res, next) => {
         imageKey,
         difficulty: difficulty.toLowerCase(),
         userId:
-          // eslint-disable-next-line no-nested-ternary, valid-typeof
           typeof userId !== undefined ? userId : req.user ? req.user._id : null,
         answerExplaination,
         similarQuestions: similarQuestionsID,

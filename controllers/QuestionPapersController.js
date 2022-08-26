@@ -70,8 +70,6 @@ const GeneratePreview = async (req, res, next) => {
         topic.count = topicsPerQuestion;
       }
     });
-    console.log(topicsDistribution);
-    console.log(req.body);
     for (let i = 0; i < topicsDistribution.length; i += 1) {
       const topic = topicsDistribution[i];
       let y = 0;
@@ -107,7 +105,6 @@ const GeneratePreview = async (req, res, next) => {
     totalQuestions -= ans.length;
     if (totalQuestions > 0) {
       filter.topic = { $in: topicsDistribution.map((topic) => topic.name) };
-      console.log(filter);
       let items;
       if (easy > 0) {
         len = await helperFn(easy, ans, 'easy', filter, idList, null, easy);
