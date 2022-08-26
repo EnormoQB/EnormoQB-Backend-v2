@@ -143,12 +143,9 @@ const GeneratePreview = async (req, res, next) => {
 const languageConverter = async (req, res, next) => {
   try {
     const { questionList, lang } = req.body;
-    const result = [];
+    console.log(questionList, lang);
+    const result = questionList;
     for (let i = 0; i < questionList.length; i += 1) {
-      const obj = {
-        question: '',
-        options: [],
-      };
       await fetch(
         'https://hf.space/embed/ai4bharat/IndicTrans-English2Indic/+/api/predict/',
         {
@@ -160,7 +157,7 @@ const languageConverter = async (req, res, next) => {
         .then((response) => response.json())
         .then((jsonResponse) => {
           // eslint-disable-next-line prefer-destructuring
-          obj.question = jsonResponse.data[0];
+          result[i].question = jsonResponse.data[0];
         });
       for (let y = 0; y < questionList[i].options.length; y += 1) {
         await fetch(
@@ -175,10 +172,10 @@ const languageConverter = async (req, res, next) => {
         )
           .then((response) => response.json())
           .then((jsonResponse) => {
-            obj.options.push(jsonResponse.data[0]);
+            // eslint-disable-next-line prefer-destructuring
+            result[i].options[y] = jsonResponse.data[0];
           });
       }
-      result.push(obj);
     }
     apiResponse.successResponseWithData(
       res,
