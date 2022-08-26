@@ -132,7 +132,11 @@ const AddQuestion = async (req, res, next) => {
     });
 
     const similarQuestionsResponse = JSON.parse(await response.text());
-    if (similarQuestionsResponse.duplicate.length > 0) {
+    if (
+      similarQuestionsResponse &&
+      similarQuestionsResponse.duplicate &&
+      similarQuestionsResponse.duplicate.length > 0
+    ) {
       const newQuestion = new Question({
         _id: questionId,
         question,
@@ -209,7 +213,9 @@ const AddQuestion = async (req, res, next) => {
         topic: topics,
         imageKey,
         difficulty: difficulty.toLowerCase(),
-        userId: req.user ? req.user._id : null,
+        userId:
+          // eslint-disable-next-line no-nested-ternary, valid-typeof
+          typeof userId !== undefined ? userId : req.user ? req.user._id : null,
         answerExplaination,
         similarQuestions: similarQuestionsID,
       });
