@@ -13,6 +13,18 @@ const fonts = {
     italics: 'fonts/Roboto/Roboto-Italic.ttf',
     bolditalics: 'fonts/Roboto/Roboto-MediumItalic.ttf',
   },
+  Kannada: {
+    normal: 'fonts/Noto_Serif_kannada/static/NotoSeriffKannada-Thin.ttf',
+    bold: 'fonts/Noto_Serif_kannada/static/NotoSeriffKannada-ExtraLight.ttf',
+    italics: 'fonts/Noto_Serif_kannada/static/NotoSeriffKannada-Thin.ttf',
+    bolditalics: 'fonts/Noto_Serif_kannada/static/NotoSeriffKannada-ExtraLight.ttf',
+  },
+  Hindi: {
+    normal: 'fonts/Tiro_Devanagari_Hindi/TiroDevanagariHindi-Regular.ttf',
+    bold: 'fonts/Noto_Serif_kannada/static/TiroDevanagariHindi-Regular.ttf',
+    italics: 'fonts/Noto_Serif_kannada/static/TiroDevanagariHindi-Italic.ttf',
+    bolditalics: 'fonts/Noto_Serif_kannada/static/TiroDevanagariHindi-Italic.ttf',
+  },
 };
 
 const GeneratePDF = async (id) => {
