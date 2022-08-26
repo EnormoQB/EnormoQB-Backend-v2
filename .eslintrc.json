@@ -23,6 +23,8 @@
     "object-curly-newline": "off",
     "no-await-in-loop": "off",
     "no-param-reassign": "off",
-    "new-cap": "off"
+    "new-cap": "off",
+    "no-nested-ternary": "off",
+    "valid-typeof": "off"
   }
 }

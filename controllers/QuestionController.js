@@ -185,7 +185,8 @@ const AddQuestion = async (req, res, next) => {
         topic: topics,
         imageKey,
         difficulty: difficulty.toLowerCase(),
-        userId: req.user ? req.user._id : null,
+        userId:
+          typeof userId !== undefined ? userId : req.user ? req.user._id : null,
         answerExplaination,
         similarQuestions: similarQuestionsID,
       });
