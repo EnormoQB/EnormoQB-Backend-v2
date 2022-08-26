@@ -92,12 +92,7 @@ const AddQuestion = async (req, res, next) => {
       id,
     } = JSON.parse(req.body.data);
 
-    if (
-      standard.length < 1 ||
-      answer.length < 1 ||
-      subject.length < 1 ||
-      topics.length < 1
-    ) {
+    if (standard.length < 1 || answer.length < 1 || subject.length < 1) {
       return apiResponse.validationErrorWithData(
         res,
         'Please send all the required fields',
