@@ -32,8 +32,6 @@ const QuestionList = async (req, res, next) => {
     const perPage = 15;
     const skip = (currentPage - 1) * perPage;
 
-    console.log(topics);
-
     const filters = {
       ...(standard ? { standard: { $regex: standard, $options: 'i' } } : {}),
       ...(difficulty
@@ -320,9 +318,7 @@ const UpdateStatus = async (req, res, next) => {
 
       await question
         .save()
-        .then(() =>
-          apiResponse.successResponse(res, 'Question feedback Updated'),
-        )
+        .then(() => apiResponse.successResponse(res, 'Question feedback Updated'))
         .catch((err) => {
           logger.error('Error :', err);
           return apiResponse.ErrorResponse(
@@ -479,9 +475,7 @@ const DeleteQuestion = async (req, res, next) => {
     const { id } = req.params;
     const question = await Question.findById(id);
     if (question.status !== 'approved') {
-      await Question.findByIdAndDelete(id).then(() =>
-        apiResponse.successResponse(res, 'Question deleted successfully'),
-      );
+      await Question.findByIdAndDelete(id).then(() => apiResponse.successResponse(res, 'Question deleted successfully'));
     } else {
       return apiResponse.validationErrorWithData(
         res,
