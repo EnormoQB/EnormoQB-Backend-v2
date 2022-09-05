@@ -23,6 +23,7 @@ const ReservedQuestions = async (req, res, next) => {
     next(error);
   }
 };
+
 const QuestionList = async (req, res, next) => {
   try {
     const { standard, difficulty, subject, status, topics, page } = req.query;
@@ -30,6 +31,8 @@ const QuestionList = async (req, res, next) => {
     const currentPage = page ? parseInt(page, 10) : 1;
     const perPage = 15;
     const skip = (currentPage - 1) * perPage;
+
+    console.log(topics);
 
     const filters = {
       ...(standard ? { standard: { $regex: standard, $options: 'i' } } : {}),
@@ -44,7 +47,9 @@ const QuestionList = async (req, res, next) => {
         status !== 'pending')
         ? { userId: id }
         : {}),
-      ...(topics && topics.length !== 0 ? { topic: { $in: [topics] } } : {}),
+      ...(topics && topics.length !== 0
+        ? { topic: { $in: [...topics.split('#!')] } }
+        : {}),
     };
 
     const questions = await Question.find(filters)
@@ -213,8 +218,7 @@ const AddQuestion = async (req, res, next) => {
         topic: topics,
         imageKey,
         difficulty: difficulty.toLowerCase(),
-        userId:
-          userId !== undefined ? userId : req.user ? req.user._id : null,
+        userId: userId !== undefined ? userId : req.user ? req.user._id : null,
         answerExplaination,
         similarQuestions: similarQuestionsID,
         status: status || 'pending',
@@ -316,7 +320,9 @@ const UpdateStatus = async (req, res, next) => {
 
       await question
         .save()
-        .then(() => apiResponse.successResponse(res, 'Question feedback Updated'))
+        .then(() =>
+          apiResponse.successResponse(res, 'Question feedback Updated'),
+        )
         .catch((err) => {
           logger.error('Error :', err);
           return apiResponse.ErrorResponse(
@@ -473,7 +479,9 @@ const DeleteQuestion = async (req, res, next) => {
     const { id } = req.params;
     const question = await Question.findById(id);
     if (question.status !== 'approved') {
-      await Question.findByIdAndDelete(id).then(() => apiResponse.successResponse(res, 'Question deleted successfully'));
+      await Question.findByIdAndDelete(id).then(() =>
+        apiResponse.successResponse(res, 'Question deleted successfully'),
+      );
     } else {
       return apiResponse.validationErrorWithData(
         res,
