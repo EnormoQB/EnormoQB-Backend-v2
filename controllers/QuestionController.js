@@ -294,9 +294,7 @@ const UpdateStatus = async (req, res, next) => {
 
       await question
         .save()
-        .then(() =>
-          apiResponse.successResponse(res, 'Question feedback Updated'),
-        )
+        .then(() => apiResponse.successResponse(res, 'Question feedback Updated'))
         .catch((err) => {
           logger.error('Error :', err);
           return apiResponse.ErrorResponse(
@@ -453,9 +451,7 @@ const DeleteQuestion = async (req, res, next) => {
     const { id } = req.params;
     const question = await Question.findById(id);
     if (question.status !== 'approved') {
-      await Question.findByIdAndDelete(id).then(() =>
-        apiResponse.successResponse(res, 'Question deleted successfully'),
-      );
+      await Question.findByIdAndDelete(id).then(() => apiResponse.successResponse(res, 'Question deleted successfully'));
     } else {
       return apiResponse.validationErrorWithData(
         res,
