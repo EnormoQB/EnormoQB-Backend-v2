@@ -132,34 +132,6 @@ const AddQuestion = async (req, res, next) => {
     });
 
     const similarQuestionsResponse = JSON.parse(await response.text());
-    if (
-      similarQuestionsResponse &&
-      similarQuestionsResponse.duplicate &&
-      similarQuestionsResponse.duplicate.length > 0
-    ) {
-      const newQuestion = new Question({
-        _id: questionId,
-        question,
-        options,
-        answer,
-        standard,
-        subject,
-        topic: topics,
-        imageKey,
-        equation: equation || null,
-        difficulty: difficulty.toLowerCase(),
-        userId: req.user ? req.user._id : null,
-        answerExplaination,
-        status: ' rejected',
-      });
-      newQuestion
-        .save()
-        .then(() => apiResponse.successResponse(res, 'Successfully added'))
-        .catch((err) => {
-          logger.error('Error :', err);
-          return apiResponse.ErrorResponse(res, 'Error while adding Question');
-        });
-    }
     const similarQuestionsID = similarQuestionsResponse.similiar.map(
       (item) => item._id,
     );
@@ -185,7 +157,7 @@ const AddQuestion = async (req, res, next) => {
           .then(() => {
             similarQuestionsResponse.similiar.forEach((item) => {
               const { similarQuestions = [] } = item;
-              similarQuestions.push(questionId);
+              similarQuestions.push(id);
               item.similarQuestions = similarQuestions;
               Question.findByIdAndUpdate(item._id, item).exec();
             });
